@@ -60,6 +60,44 @@
             }
         }
 
+        .music-control {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(45, 45, 45, 0.9);
+            border: 2px solid #ff6b6b;
+            border-radius: 50px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .music-control:hover {
+            background: rgba(255, 107, 107, 0.2);
+            transform: scale(1.05);
+        }
+
+        .music-icon {
+            font-size: 18px;
+            animation: musicNote 2s ease-in-out infinite;
+        }
+
+        .music-control.muted .music-icon {
+            animation: none;
+            opacity: 0.5;
+        }
+
+        @keyframes musicNote {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
         .header {
             text-align: center;
             margin-bottom: 30px;
@@ -67,8 +105,15 @@
 
         .logo {
             width: 120px;
-            height: auto;
-            margin-bottom: 20px;
+            height: 120px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            margin: 0 auto 20px;
         }
 
         h1 {
@@ -201,6 +246,7 @@
             text-align: center;
             min-width: 80px;
             box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+            transition: all 0.3s;
         }
 
         .result-item {
@@ -212,72 +258,9 @@
             width: 100%;
             max-width: 800px;
             height: 300px;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
-        }
-
-        .ladder-line {
-            stroke: #666;
-            stroke-width: 3;
-            transition: all 0.3s ease;
-        }
-
-        .ladder-line.active {
-            stroke: #ff6b6b;
-            stroke-width: 6;
-            filter: drop-shadow(0 0 10px #ff6b6b);
-        }
-
-        .ladder-horizontal {
-            stroke: #888;
-            stroke-width: 3;
-            transition: all 0.3s ease;
-        }
-
-        .ladder-horizontal.active {
-            stroke: #4ecdc4;
-            stroke-width: 5;
-            filter: drop-shadow(0 0 8px #4ecdc4);
-        }
-
-        .path-indicator {
-            fill: #ff6b6b;
-            r: 8;
-            filter: drop-shadow(0 0 15px #ff6b6b);
-            animation: movingDot 0.8s ease-in-out infinite;
-            transition: all 0.3s ease;
-        }
-
-        @keyframes pulse {
-            0% { r: 8; opacity: 1; }
-            50% { r: 12; opacity: 0.7; }
-            100% { r: 8; opacity: 1; }
-        }
-
-        @keyframes movingDot {
-            0% { r: 6; opacity: 0.8; }
-            50% { r: 10; opacity: 1; }
-            100% { r: 6; opacity: 0.8; }
-        }
-
-        .moving-indicator {
-            fill: #00ff00;
-            r: 10;
-            filter: drop-shadow(0 0 20px #00ff00);
-            animation: glow 0.5s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from { 
-                r: 8;
-                opacity: 0.8;
-                filter: drop-shadow(0 0 15px #00ff00);
-            }
-            to { 
-                r: 12;
-                opacity: 1;
-                filter: drop-shadow(0 0 25px #00ff00);
-            }
+            border: 2px solid #555;
         }
 
         .winner-announcement {
@@ -303,7 +286,7 @@
             margin-bottom: 10px;
         }
 
-        .desert-emoji {
+        .coffee-emoji {
             font-size: 4rem;
             margin: 20px 0;
         }
@@ -369,17 +352,13 @@
     </div>
     
     <!-- Background Music -->
-    <audio id="bgMusic" loop preload="auto" crossorigin="anonymous">
+    <audio id="bgMusic" loop>
         <source src="bsd.mp3" type="audio/mpeg">
-        <source src="bsd.mp3" type="audio/mp3">
-        <source src="./bsd.mp3" type="audio/mpeg">
     </audio>
 
     <div class="container">
         <!-- Top Manual Ad -->
         <div class="ad-container">
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
-                 crossorigin="anonymous"></script>
             <ins class="adsbygoogle"
                  style="display:block; text-align:center;"
                  data-ad-layout="in-article"
@@ -392,7 +371,7 @@
         </div>
 
         <div class="header">
-            <img src="./bsd-white.png" alt="로고" class="logo" style="width:120px;height:auto;margin:0 auto 20px;display:block;" onerror="this.outerHTML='<div style=\\'width:120px;height:120px;background:#ff6b6b;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:40px;margin:0 auto 20px;\\'>☕</div>'">
+            <div class="logo">☕</div>
             <h1>☕ 사다리 게임 ☕</h1>
             <p class="subtitle">커피 쏘기 당첨자를 뽑아보세요!</p>
         </div>
@@ -415,15 +394,13 @@
             <div class="controls">
                 <button class="btn-secondary" onclick="addPlayer()">참가자 추가</button>
                 <button class="btn-secondary" onclick="removePlayer()">참가자 제거</button>
-                <button class="btn-primary" onclick="startGameWithMusic();">게임 시작!</button>
+                <button class="btn-primary" onclick="startGame()">게임 시작!</button>
                 <button class="btn-secondary" onclick="resetGame()">다시하기</button>
             </div>
         </div>
 
         <!-- Middle Manual Ad -->
         <div class="ad-container">
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
-                 crossorigin="anonymous"></script>
             <ins class="adsbygoogle"
                  style="display:block; text-align:center;"
                  data-ad-layout="in-article"
@@ -438,7 +415,7 @@
         <div class="game-board" id="gameBoard" style="display: none;">
             <div class="ladder-container">
                 <div class="players-row" id="playersRow"></div>
-                <svg class="ladder-svg" id="ladderSvg"></svg>
+                <svg class="ladder-svg" id="ladderSvg" width="800" height="300"></svg>
                 <div class="results-row" id="resultsRow"></div>
             </div>
             <div style="text-align: center; margin-top: 20px;">
@@ -449,14 +426,12 @@
         <div class="winner-announcement" id="winnerAnnouncement">
             <div class="winner-text">🎉 당첨자 발표! 🎉</div>
             <div class="winner-name" id="winnerName"></div>
-            <div class="desert-emoji">☕🥤🧋🍵🫖</div>
+            <div class="coffee-emoji">☕🥤🧋🍵🫖</div>
             <div style="font-size: 1.5rem;" id="coffeeMessage">커피를 쏘세요! 🎊</div>
         </div>
 
         <!-- Bottom Manual Ad -->
         <div class="ad-container">
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
-                 crossorigin="anonymous"></script>
             <ins class="adsbygoogle"
                  style="display:block; text-align:center;"
                  data-ad-layout="in-article"
@@ -472,7 +447,8 @@
     <script>
         let playerCount = 2;
         let gameStarted = false;
-        let ladderPaths = [];
+        let musicEnabled = true;
+        let bgMusic = null;
         
         const coffeeMenus = {
             빽다방: [
@@ -486,8 +462,6 @@
                 "달고나라떼"
             ]
         };
-        
-        const coffeeOptions = ['☕ 아메리카노', '🥤 카페라떼', '🧋 버블티', '🍵 녹차라떼', '☕ 카푸치노', '🥤 바닐라라떼', '🧋 타로라떼', '☕ 카라멜마키아토', '🥤 딸기라떼', '🍵 말차라떼'];
 
         function addPlayer() {
             if (playerCount >= 10) {
@@ -517,43 +491,24 @@
             playerCount--;
         }
 
-        let gameStarting = false;
-        
-        function startGameWithMusic() {
-            // 먼저 음악 재생 시도
-            if (musicEnabled && bgMusic) {
-                console.log('Attempting to play music...');
-                bgMusic.currentTime = 0;
-                bgMusic.volume = 0.3;
-                
-                // 직접 재생 시도
-                const playPromise = bgMusic.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        console.log('✅ Music started successfully!');
-                    }).catch(e => {
-                        console.log('❌ Music blocked:', e);
-                        alert('음악 재생을 위해 화면을 한 번 더 클릭해주세요.');
-                    });
-                }
-            }
-            
-            // 그 다음 게임 시작
-            setTimeout(() => {
-                startGame();
-            }, 100);
-        }
-        
         function startGame() {
-            if (gameStarting) return; // 중복 클릭 방지
-            gameStarting = true;
+            console.log('게임 시작 함수 호출됨');
+            
+            // 음악 재생 시도
+            if (musicEnabled && bgMusic) {
+                bgMusic.currentTime = 0;
+                bgMusic.play().then(() => {
+                    console.log('✅ 음악 재생 성공');
+                }).catch(e => {
+                    console.log('❌ 음악 재생 실패:', e);
+                });
+            }
             
             const players = [];
             for (let i = 1; i <= playerCount; i++) {
                 const name = document.getElementById(`player${i}`).value.trim();
                 if (!name) {
                     alert(`${i}번 참가자의 이름을 입력해주세요.`);
-                    gameStarting = false;
                     return;
                 }
                 players.push(name);
@@ -564,19 +519,15 @@
             document.getElementById('winnerAnnouncement').style.display = 'none';
             gameStarted = true;
             
-            setTimeout(() => {
-                gameStarting = false;
-            }, 1000);
+            console.log('게임 설정 완료');
         }
 
         function setupLadder(players) {
             const playersRow = document.getElementById('playersRow');
             const resultsRow = document.getElementById('resultsRow');
-            const ladderSvg = document.getElementById('ladderSvg');
 
             playersRow.innerHTML = '';
             resultsRow.innerHTML = '';
-            ladderSvg.innerHTML = '';
 
             players.forEach(player => {
                 const playerDiv = document.createElement('div');
@@ -585,13 +536,10 @@
                 playersRow.appendChild(playerDiv);
             });
 
-            // 최초에는 빈 공간만 보여주고, 사다리 타기 후 결과만 표시
             for (let i = 0; i < players.length; i++) {
                 const resultDiv = document.createElement('div');
                 resultDiv.className = 'result-item';
                 resultDiv.textContent = '?';
-                resultDiv.style.background = '#4ecdc4';
-                resultDiv.style.opacity = '0.8';
                 resultsRow.appendChild(resultDiv);
             }
 
@@ -600,19 +548,15 @@
 
         function drawLadder(playerCount) {
             const svg = document.getElementById('ladderSvg');
-            const width = 800; // 고정 크기 사용
+            svg.innerHTML = '';
+            
+            const width = 800;
             const height = 300;
             const stepWidth = width / (playerCount + 1);
             const levels = 8;
             const levelHeight = height / (levels + 1);
 
-            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-            svg.setAttribute('width', width);
-            svg.setAttribute('height', height);
-
-            // 기존 요소 제거
-            svg.innerHTML = '';
-
+            // 세로선 그리기
             for (let i = 0; i < playerCount; i++) {
                 const x = stepWidth * (i + 1);
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -620,16 +564,15 @@
                 line.setAttribute('y1', 20);
                 line.setAttribute('x2', x);
                 line.setAttribute('y2', height - 20);
-                line.setAttribute('class', 'ladder-line');
-                line.setAttribute('data-column', i);
                 line.style.stroke = '#666';
                 line.style.strokeWidth = '3';
                 svg.appendChild(line);
             }
 
+            // 가로선 그리기
             for (let level = 1; level <= levels; level++) {
                 const y = levelHeight * level;
-                const connections = generateRandomConnections(playerCount);
+                const connections = generateConnections(playerCount);
                 
                 connections.forEach(connection => {
                     const x1 = stepWidth * (connection + 1);
@@ -639,20 +582,16 @@
                     line.setAttribute('y1', y);
                     line.setAttribute('x2', x2);
                     line.setAttribute('y2', y);
-                    line.setAttribute('class', 'ladder-horizontal');
-                    line.setAttribute('data-level', level);
-                    line.setAttribute('data-from', connection);
-                    line.setAttribute('data-to', connection + 1);
                     line.style.stroke = '#888';
                     line.style.strokeWidth = '2';
                     svg.appendChild(line);
                 });
             }
             
-            console.log('Ladder drawn with', playerCount, 'players');
+            console.log('사다리 그리기 완료');
         }
 
-        function generateRandomConnections(playerCount) {
+        function generateConnections(playerCount) {
             const connections = [];
             for (let i = 0; i < playerCount - 1; i++) {
                 if (Math.random() > 0.4) {
@@ -662,190 +601,11 @@
             return connections;
         }
 
-        let currentPlayerIndex = 0;
-        let allResults = [];
-        
         function runLadder() {
             if (!gameStarted) return;
-
-            const svg = document.getElementById('ladderSvg');
-            const lines = svg.querySelectorAll('.ladder-line');
-            const horizontals = svg.querySelectorAll('.ladder-horizontal');
             
-            lines.forEach(line => line.classList.remove('active'));
-            allResults = [];
-            currentPlayerIndex = 0;
-            
-            // 1번부터 순차적으로 진행
-            setTimeout(() => {
-                runNextPlayer();
-            }, 500);
-        }
-        
-        function runNextPlayer() {
-            if (currentPlayerIndex >= playerCount) {
-                // 모든 플레이어 완료 후 결과 처리
-                processAllResults();
-                return;
-            }
-            
-            const players = [];
-            for (let i = 1; i <= playerCount; i++) {
-                players.push(document.getElementById(`player${i}`).value.trim());
-            }
-            
-            // 현재 플레이어 표시
-            const playersRow = document.getElementById('playersRow');
-            const playerDivs = playersRow.children;
-            
-            // 모든 플레이어 스타일 초기화
-            for (let i = 0; i < playerDivs.length; i++) {
-                playerDivs[i].style.background = '#ff6b6b';
-                playerDivs[i].style.transform = 'scale(1)';
-            }
-            
-            // 현재 플레이어 강조
-            if (playerDivs[currentPlayerIndex]) {
-                playerDivs[currentPlayerIndex].style.background = '#00ff00';
-                playerDivs[currentPlayerIndex].style.transform = 'scale(1.1)';
-            }
-            
-            setTimeout(() => {
-                tracePath(currentPlayerIndex);
-            }, 500);
-        }
-
-        function tracePath(startColumn) {
-            const svg = document.getElementById('ladderSvg');
-            const horizontals = svg.querySelectorAll('.ladder-horizontal');
-            const levels = 8;
-            let currentColumn = startColumn;
-            
-            const pathTrace = [];
-            pathTrace.push(currentColumn);
-
-            for (let level = 1; level <= levels; level++) {
-                const levelHorizontals = Array.from(horizontals).filter(h => 
-                    parseInt(h.getAttribute('data-level')) === level
-                );
-                
-                const leftConnection = levelHorizontals.find(h => 
-                    parseInt(h.getAttribute('data-to')) === currentColumn
-                );
-                const rightConnection = levelHorizontals.find(h => 
-                    parseInt(h.getAttribute('data-from')) === currentColumn
-                );
-
-                if (leftConnection) {
-                    currentColumn = parseInt(leftConnection.getAttribute('data-from'));
-                } else if (rightConnection) {
-                    currentColumn = parseInt(rightConnection.getAttribute('data-to'));
-                }
-                
-                pathTrace.push(currentColumn);
-            }
-
-            animatePath(pathTrace, startColumn);
-        }
-
-        function animatePath(pathTrace, startPlayer) {
-            const svg = document.getElementById('ladderSvg');
-            const lines = svg.querySelectorAll('.ladder-line');
-            const horizontals = svg.querySelectorAll('.ladder-horizontal');
-            
-            // 모든 요소 초기화
-            lines.forEach(line => line.classList.remove('active'));
-            horizontals.forEach(line => line.classList.remove('active'));
-            
-            // 기존 점 제거
-            const existingDots = svg.querySelectorAll('.moving-dot');
-            existingDots.forEach(dot => dot.remove());
-            
-            // 사다리 경로 계산
-            const width = svg.clientWidth || 800;
-            const height = 300;
-            const stepWidth = width / (playerCount + 1);
-            const levels = 8;
-            const levelHeight = height / (levels + 1);
-            
-            let delay = 0;
-            let movingDot = null;
-            
-            pathTrace.forEach((column, index) => {
-                setTimeout(() => {
-                    // 현재 세로선 활성화
-                    lines.forEach(line => line.classList.remove('active'));
-                    const currentLine = svg.querySelector(`[data-column="${column}"]`);
-                    if (currentLine) {
-                        currentLine.classList.add('active');
-                    }
-                    
-                    // 움직이는 점 생성 및 위치 업데이트
-                    if (!movingDot) {
-                        movingDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                        movingDot.setAttribute('class', 'moving-dot moving-indicator');
-                        movingDot.setAttribute('r', '10');
-                        svg.appendChild(movingDot);
-                    }
-                    
-                    const currentX = stepWidth * (column + 1);
-                    const currentY = levelHeight * index + 20;
-                    
-                    movingDot.style.transition = 'all 0.5s ease-in-out';
-                    movingDot.setAttribute('cx', currentX);
-                    movingDot.setAttribute('cy', currentY);
-                    
-                    // 가로선 연결 애니메이션
-                    if (index < pathTrace.length - 1) {
-                        const nextColumn = pathTrace[index + 1];
-                        if (column !== nextColumn) {
-                            const horizontalLine = Array.from(horizontals).find(h => {
-                                const level = Math.floor(index / (levels / pathTrace.length)) + 1;
-                                const hLevel = parseInt(h.getAttribute('data-level'));
-                                const from = parseInt(h.getAttribute('data-from'));
-                                const to = parseInt(h.getAttribute('data-to'));
-                                return (from === column && to === nextColumn) || (from === nextColumn && to === column);
-                            });
-                            if (horizontalLine) {
-                                setTimeout(() => {
-                                    horizontalLine.classList.add('active');
-                                    // 가로선을 따라 점 이동
-                                    const nextX = stepWidth * (nextColumn + 1);
-                                    setTimeout(() => {
-                                        movingDot.setAttribute('cx', nextX);
-                                    }, 100);
-                                }, 200);
-                            }
-                        }
-                    }
-                    
-                    // 마지막 단계에서 결과 발표
-                    if (index === pathTrace.length - 1) {
-                        setTimeout(() => {
-                            // 점을 결과 위치로 이동
-                            const finalY = height - 20;
-                            movingDot.setAttribute('cy', finalY);
-                            setTimeout(() => {
-                                // 결과 저장
-                                allResults.push({
-                                    playerIndex: startPlayer,
-                                    resultIndex: column
-                                });
-                                
-                                // 다음 플레이어로 진행
-                                currentPlayerIndex++;
-                                setTimeout(() => {
-                                    runNextPlayer();
-                                }, 1000);
-                            }, 500);
-                        }, 800);
-                    }
-                }, delay);
-                delay += 800;
-            });
-        }
-        
-        function processAllResults() {
+            // 랜덤 당첨자 선택
+            const winnerIndex = Math.floor(Math.random() * playerCount);
             const players = [];
             for (let i = 1; i <= playerCount; i++) {
                 players.push(document.getElementById(`player${i}`).value.trim());
@@ -853,77 +613,10 @@
             
             const resultsRow = document.getElementById('resultsRow');
             const resultItems = resultsRow.children;
-            
-            // 당첨자 찾기 - 랜덤하게 한 명만 당첨
-            const winnerResultIndex = Math.floor(Math.random() * playerCount);
-            let actualWinner = null;
             
             // 결과 표시
             for (let i = 0; i < resultItems.length; i++) {
-                if (i === winnerResultIndex) {
-                    resultItems[i].textContent = '🎉 당첨 🎉';
-                    resultItems[i].style.background = '#ff6b6b';
-                    resultItems[i].style.animation = 'pulse 2s infinite';
-                    
-                    // 이 위치에 도착한 플레이어 찾기
-                    const winnerData = allResults.find(result => result.resultIndex === i);
-                    if (winnerData) {
-                        actualWinner = {
-                            name: players[winnerData.playerIndex],
-                            playerIndex: winnerData.playerIndex
-                        };
-                    }
-                } else {
-                    resultItems[i].textContent = '통과';
-                    resultItems[i].style.background = '#666';
-                    resultItems[i].style.opacity = '0.5';
-                }
-            }
-            
-            // 당첨자 처리
-            if (actualWinner) {
-                const randomMenu = coffeeMenus.빽다방[Math.floor(Math.random() * coffeeMenus.빽다방.length)];
-                
-                document.getElementById('winnerName').textContent = actualWinner.name;
-                document.getElementById('winnerAnnouncement').style.display = 'block';
-                
-                setTimeout(() => {
-                    alert(`🎉 당첨자: ${actualWinner.name}님!\n\n빽다방 ${randomMenu}을(를) 쏘셔야 해요! ☕`);
-                    document.getElementById('coffeeMessage').innerHTML = `<strong>빽다방 ${randomMenu}</strong>을(를) 쏘세요! ☕`;
-                }, 500);
-                
-                setTimeout(() => {
-                    document.getElementById('winnerAnnouncement').scrollIntoView({ 
-                        behavior: 'smooth' 
-                    });
-                }, 100);
-            }
-            
-            // 비당첨자들에게 축하 메시지
-            setTimeout(() => {
-                for (let i = 0; i < players.length; i++) {
-                    if (!actualWinner || i !== actualWinner.playerIndex) {
-                        setTimeout(() => {
-                            alert(`🎉 축하합니다 ${players[i]}님!\n\n돈을 아끼셨네요! 💰`);
-                        }, i * 1000); // 간격을 두고 팝업 표시
-                    }
-                }
-            }, 1000);
-        }
-
-        function announceWinner(startPlayer, endColumn) {
-            const players = [];
-            for (let i = 1; i <= playerCount; i++) {
-                players.push(document.getElementById(`player${i}`).value.trim());
-            }
-            
-            const winnerName = players[startPlayer];
-            const resultsRow = document.getElementById('resultsRow');
-            const resultItems = resultsRow.children;
-            
-            // 결과 표시 - 당첨자 위치에만 "당첨" 표시
-            for (let i = 0; i < resultItems.length; i++) {
-                if (i === endColumn) {
+                if (i === winnerIndex) {
                     resultItems[i].textContent = '🎉 당첨 🎉';
                     resultItems[i].style.background = '#ff6b6b';
                     resultItems[i].style.animation = 'pulse 2s infinite';
@@ -934,34 +627,35 @@
                 }
             }
             
-            // 빽다방 메뉴에서 랜덤 선택
+            // 당첨자 발표
+            const winnerName = players[winnerIndex];
             const randomMenu = coffeeMenus.빽다방[Math.floor(Math.random() * coffeeMenus.빽다방.length)];
             
             document.getElementById('winnerName').textContent = winnerName;
             document.getElementById('winnerAnnouncement').style.display = 'block';
             
-            // 팝업으로 당첨자와 메뉴 알림 - 브랜드명 포함
             setTimeout(() => {
                 alert(`🎉 당첨자: ${winnerName}님!\n\n빽다방 ${randomMenu}을(를) 쏘셔야 해요! ☕`);
                 document.getElementById('coffeeMessage').innerHTML = `<strong>빽다방 ${randomMenu}</strong>을(를) 쏘세요! ☕`;
             }, 500);
             
+            // 비당첨자들 축하
             setTimeout(() => {
-                document.getElementById('winnerAnnouncement').scrollIntoView({ 
-                    behavior: 'smooth' 
-                });
-            }, 100);
+                for (let i = 0; i < players.length; i++) {
+                    if (i !== winnerIndex) {
+                        setTimeout(() => {
+                            alert(`🎉 축하합니다 ${players[i]}님!\n\n돈을 아끼셨네요! 💰`);
+                        }, (i + 1) * 1000);
+                    }
+                }
+            }, 1000);
         }
 
         function resetGame() {
             document.getElementById('gameBoard').style.display = 'none';
             document.getElementById('winnerAnnouncement').style.display = 'none';
             gameStarted = false;
-            gameStarting = false;
-            currentPlayerIndex = 0;
-            allResults = [];
             
-            // 음악 정지
             if (bgMusic) {
                 bgMusic.pause();
                 bgMusic.currentTime = 0;
@@ -976,29 +670,13 @@
             const musicControl = document.getElementById('musicControl');
             const musicStatus = document.getElementById('musicStatus');
             
-            if (!bgMusic) {
-                bgMusic = document.getElementById('bgMusic');
-                if (bgMusic) {
-                    bgMusic.volume = 0.3;
-                }
-            }
-            
             musicEnabled = !musicEnabled;
             
             if (musicEnabled) {
                 musicStatus.textContent = '음악 ON';
                 musicControl.classList.remove('muted');
-                if (bgMusic) {
-                    bgMusic.play().catch(e => {
-                        console.log('Music play failed:', e);
-                        // 사용자 상호작용이 필요한 경우 다음 클릭에서 재생
-                        document.addEventListener('click', function playOnClick() {
-                            if (musicEnabled && bgMusic) {
-                                bgMusic.play().catch(e => console.log('Still blocked:', e));
-                            }
-                            document.removeEventListener('click', playOnClick);
-                        }, { once: true });
-                    });
+                if (bgMusic && gameStarted) {
+                    bgMusic.play().catch(e => console.log('음악 재생 실패'));
                 }
             } else {
                 musicStatus.textContent = '음악 OFF';
@@ -1009,40 +687,14 @@
             }
         }
 
-        function playGameMusic() {
-            if (musicEnabled && bgMusic) {
-                bgMusic.play().catch(e => {
-                    console.log('Auto-play prevented:', e);
-                });
-            }
-        }
-
-        // 페이지 로드 시 음악 초기화
+        // 초기화
         window.addEventListener('load', function() {
             bgMusic = document.getElementById('bgMusic');
             if (bgMusic) {
                 bgMusic.volume = 0.3;
-                bgMusic.preload = 'auto';
-                
-                // 음악 파일 로드 확인
-                bgMusic.addEventListener('loadeddata', function() {
-                    console.log('Music file loaded successfully');
-                });
-                bgMusic.addEventListener('error', function(e) {
-                    console.log('Music file load error:', e);
-                });
-                
-                // 사용자 첫 상호작용 대기
-                const enableAudio = () => {
-                    if (bgMusic && musicEnabled) {
-                        bgMusic.play().catch(e => console.log('First play failed'));
-                    }
-                    document.removeEventListener('click', enableAudio);
-                    document.removeEventListener('touchstart', enableAudio);
-                };
-                document.addEventListener('click', enableAudio, { once: true });
-                document.addEventListener('touchstart', enableAudio, { once: true });
+                console.log('음악 파일 준비 완료');
             }
+            console.log('페이지 로드 완료');
         });
     </script>
 </body>
