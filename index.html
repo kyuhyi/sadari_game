@@ -104,8 +104,8 @@
         }
 
         .logo {
-            width: 120px;
-            height: 120px;
+            width: 200px;
+            height: auto;
             margin: 0 auto 20px;
             display: block;
         }
@@ -396,7 +396,7 @@
     </div>
     
     <!-- Background Music -->
-    <audio id="bgMusic" loop preload="auto" autoplay muted>
+    <audio id="bgMusic" loop preload="auto" autoplay>
         <source src="bsd.mp3" type="audio/mpeg">
         <source src="bsd.mp3" type="audio/mp3">
     </audio>
@@ -590,16 +590,9 @@
                 playersRow.appendChild(playerDiv);
             });
 
-            // 각기 다른 결과 생성
-            const allMenus = [...coffeeMenus.빽다방];
-            const nonWinnerOptions = ['통과', '다음기회에', '아쉬워요', '운이없네요', 'Try Again'];
-            
-            // 당첨자 위치와 메뉴 선택
+            // 당첨자 1명, 나머지는 통과
             const winnerIndex = Math.floor(Math.random() * players.length);
-            const winnerMenu = allMenus[Math.floor(Math.random() * allMenus.length)];
-            
-            // 비당첨자용 옵션들 섞기
-            const shuffledOptions = [...nonWinnerOptions].sort(() => Math.random() - 0.5);
+            const winnerMenu = coffeeMenus.빽다방[Math.floor(Math.random() * coffeeMenus.빽다방.length)];
             
             for (let i = 0; i < players.length; i++) {
                 const resultDiv = document.createElement('div');
@@ -610,9 +603,7 @@
                     resultDiv.setAttribute('data-winner', 'true');
                     resultDiv.setAttribute('data-menu', winnerMenu);
                 } else {
-                    // 각기 다른 비당첨 메시지
-                    const optionIndex = Math.min(i < winnerIndex ? i : i - 1, shuffledOptions.length - 1);
-                    resultDiv.textContent = shuffledOptions[optionIndex] || '통과';
+                    resultDiv.textContent = '통과';
                     resultDiv.style.background = '#4ecdc4';
                 }
                 resultsRow.appendChild(resultDiv);
@@ -944,36 +935,17 @@
         window.addEventListener('load', function() {
             bgMusic = document.getElementById('bgMusic');
             if (bgMusic) {
-                bgMusic.volume = 0.0; // 시작은 무음으로
+                bgMusic.volume = 0.3;
+                console.log('음악 파일 준비 완료 - autoplay 속성으로 자동 재생');
                 
-                // 음악 자동 재생 및 음소거 해제
-                const enableMusic = () => {
-                    if (bgMusic && musicEnabled) {
-                        bgMusic.muted = false;
-                        bgMusic.volume = 0.3;
-                        bgMusic.play().then(() => {
-                            console.log('✅ 음악 재생 성공');
-                        }).catch(e => {
-                            console.log('❌ 음악 재생 실패:', e);
-                        });
-                    }
-                };
-                
-                // 즉시 음악 활성화 시도
-                setTimeout(enableMusic, 100);
-                
-                // 사용자 상호작용 시 음악 활성화
-                const interactions = ['click', 'touchstart', 'keydown', 'mouseover'];
-                interactions.forEach(event => {
-                    document.addEventListener(event, function enableOnInteraction() {
-                        enableMusic();
-                        interactions.forEach(e => {
-                            document.removeEventListener(e, enableOnInteraction);
-                        });
+                // 혹시 autoplay가 차단된 경우 사용자 클릭 시 재생
+                bgMusic.addEventListener('error', function() {
+                    document.addEventListener('click', function() {
+                        if (musicEnabled) {
+                            bgMusic.play().catch(e => console.log('클릭 후에도 음악 재생 실패:', e));
+                        }
                     }, { once: true });
                 });
-                
-                console.log('음악 파일 준비 완료');
             }
             console.log('페이지 로드 완료');
         });
