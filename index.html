@@ -369,9 +369,10 @@
     </div>
     
     <!-- Background Music -->
-    <audio id="bgMusic" loop preload="auto">
+    <audio id="bgMusic" loop preload="auto" crossorigin="anonymous">
+        <source src="bsd.mp3" type="audio/mpeg">
+        <source src="bsd.mp3" type="audio/mp3">
         <source src="./bsd.mp3" type="audio/mpeg">
-        <source src="./bsd.mp3" type="audio/mp3">
     </audio>
 
     <div class="container">
@@ -391,7 +392,7 @@
         </div>
 
         <div class="header">
-            <img src="bsd-white.png" alt="로고" class="logo" style="width:120px;height:auto;margin:0 auto 20px;display:block;">
+            <img src="./bsd-white.png" alt="로고" class="logo" style="width:120px;height:auto;margin:0 auto 20px;display:block;" onerror="this.outerHTML='<div style=\\'width:120px;height:120px;background:#ff6b6b;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:40px;margin:0 auto 20px;\\'>☕</div>'">
             <h1>☕ 사다리 게임 ☕</h1>
             <p class="subtitle">커피 쏘기 당첨자를 뽑아보세요!</p>
         </div>
@@ -414,7 +415,7 @@
             <div class="controls">
                 <button class="btn-secondary" onclick="addPlayer()">참가자 추가</button>
                 <button class="btn-secondary" onclick="removePlayer()">참가자 제거</button>
-                <button class="btn-primary" onclick="startGame(); playGameMusic();">게임 시작!</button>
+                <button class="btn-primary" onclick="startGameWithMusic();">게임 시작!</button>
                 <button class="btn-secondary" onclick="resetGame()">다시하기</button>
             </div>
         </div>
@@ -518,6 +519,31 @@
 
         let gameStarting = false;
         
+        function startGameWithMusic() {
+            // 먼저 음악 재생 시도
+            if (musicEnabled && bgMusic) {
+                console.log('Attempting to play music...');
+                bgMusic.currentTime = 0;
+                bgMusic.volume = 0.3;
+                
+                // 직접 재생 시도
+                const playPromise = bgMusic.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log('✅ Music started successfully!');
+                    }).catch(e => {
+                        console.log('❌ Music blocked:', e);
+                        alert('음악 재생을 위해 화면을 한 번 더 클릭해주세요.');
+                    });
+                }
+            }
+            
+            // 그 다음 게임 시작
+            setTimeout(() => {
+                startGame();
+            }, 100);
+        }
+        
         function startGame() {
             if (gameStarting) return; // 중복 클릭 방지
             gameStarting = true;
@@ -537,29 +563,6 @@
             document.getElementById('gameBoard').style.display = 'block';
             document.getElementById('winnerAnnouncement').style.display = 'none';
             gameStarted = true;
-            
-            // 게임 시작 시 음악 재생 - 강제 재생 시도
-            setTimeout(() => {
-                if (musicEnabled && bgMusic) {
-                    bgMusic.currentTime = 0;
-                    const playPromise = bgMusic.play();
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => {
-                            console.log('Music started successfully');
-                        }).catch(e => {
-                            console.log('Music blocked, adding click listener:', e);
-                            // 다음 클릭에서 재생
-                            const playOnClick = () => {
-                                if (musicEnabled && bgMusic) {
-                                    bgMusic.play().catch(e => console.log('Still blocked'));
-                                }
-                                document.removeEventListener('click', playOnClick);
-                            };
-                            document.addEventListener('click', playOnClick, { once: true });
-                        });
-                    }
-                }
-            }, 200);
             
             setTimeout(() => {
                 gameStarting = false;
