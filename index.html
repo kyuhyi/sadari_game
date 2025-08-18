@@ -343,12 +343,26 @@
     <div class="sidebar-ad left">
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
              crossorigin="anonymous"></script>
+        <!-- 자동 광고는 AdSense에서 자동으로 배치됩니다 -->
     </div>
     
     <div class="sidebar-ad right">
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
              crossorigin="anonymous"></script>
+        <!-- 자동 광고는 AdSense에서 자동으로 배치됩니다 -->
     </div>
+
+    <!-- Music Control -->
+    <div class="music-control" id="musicControl" onclick="toggleMusic()">
+        <span class="music-icon">🎵</span>
+        <span id="musicStatus">음악 ON</span>
+    </div>
+    
+    <!-- Background Music -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="./bsd.mp3" type="audio/mpeg">
+        <source src="./bsd.mp3" type="audio/mp3">
+    </audio>
 
     <div class="container">
         <!-- Top Manual Ad -->
@@ -367,7 +381,7 @@
         </div>
 
         <div class="header">
-            <img src="bsd-white.png" alt="로고" class="logo">
+            <img src="./bsd-white.png" alt="로고" class="logo" onerror="this.style.display='none'">
             <h1>☕ 사다리 게임 ☕</h1>
             <p class="subtitle">커피 쏘기 당첨자를 뽑아보세요!</p>
         </div>
@@ -525,11 +539,20 @@
                 playersRow.appendChild(playerDiv);
             });
 
-            const shuffledCoffees = [...coffeeOptions].sort(() => Math.random() - 0.5);
+            // 당첨자는 1명이므로 하나의 "당첨" 표시만 랜덤 위치에 배치
+            const winnerPosition = Math.floor(Math.random() * players.length);
             for (let i = 0; i < players.length; i++) {
                 const resultDiv = document.createElement('div');
                 resultDiv.className = 'result-item';
-                resultDiv.textContent = shuffledCoffees[i] || `커피 ${i + 1}`;
+                if (i === winnerPosition) {
+                    resultDiv.textContent = '🎉 당첨 🎉';
+                    resultDiv.style.background = '#ff6b6b';
+                    resultDiv.style.animation = 'pulse 2s infinite';
+                } else {
+                    resultDiv.textContent = '꽝';
+                    resultDiv.style.background = '#666';
+                    resultDiv.style.opacity = '0.7';
+                }
                 resultsRow.appendChild(resultDiv);
             }
 
