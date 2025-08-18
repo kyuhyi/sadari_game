@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사다리 게임 - 커피 쏘기 당첨자 뽑기</title>
+    <meta name="description" content="최대 10명까지 참여 가능한 사다리 게임으로 커피 쏘기 당첨자를 뽑아보세요!">
+    <meta name="keywords" content="사다리게임, 뽑기게임, 커피, 당첨자, 온라인게임">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="naver-site-verification" content="c9e652c65ab915590cc109ed36306d462f4ef889" />
+    <meta name="google-site-verification" content="mFfFNJ5_oCs7b0DCw08aOaDnvlmAPUlEPxPk_RjAJrI" />
+    
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
+         crossorigin="anonymous"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .sidebar-ad {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 160px;
+            height: 600px;
+            z-index: 100;
+        }
+
+        .sidebar-ad.left {
+            left: 10px;
+        }
+
+        .sidebar-ad.right {
+            right: 10px;
+        }
+
+        @media (max-width: 1400px) {
+            .sidebar-ad {
+                display: none;
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #ff6b6b;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .subtitle {
+            color: #b0b0b0;
+            font-size: 1.2rem;
+        }
+
+        .game-setup {
+            background: rgba(45, 45, 45, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .player-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .player-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-input label {
+            min-width: 60px;
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .player-input input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #444;
+            border-radius: 8px;
+            background: #333;
+            color: #fff;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .player-input input:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .game-board {
+            background: rgba(45, 45, 45, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ladder-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .players-row, .results-row {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .player-name, .result-item {
+            background: #ff6b6b;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-align: center;
+            min-width: 80px;
+            box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+        }
+
+        .result-item {
+            background: #4ecdc4;
+            box-shadow: 0 4px 8px rgba(78, 205, 196, 0.3);
+        }
+
+        .ladder-svg {
+            width: 100%;
+            max-width: 800px;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .ladder-line {
+            stroke: #666;
+            stroke-width: 3;
+            transition: all 0.3s ease;
+        }
+
+        .ladder-line.active {
+            stroke: #ff6b6b;
+            stroke-width: 6;
+            filter: drop-shadow(0 0 10px #ff6b6b);
+        }
+
+        .ladder-horizontal {
+            stroke: #888;
+            stroke-width: 3;
+            transition: all 0.3s ease;
+        }
+
+        .ladder-horizontal.active {
+            stroke: #4ecdc4;
+            stroke-width: 5;
+            filter: drop-shadow(0 0 8px #4ecdc4);
+        }
+
+        .path-indicator {
+            fill: #ff6b6b;
+            r: 8;
+            filter: drop-shadow(0 0 15px #ff6b6b);
+            animation: movingDot 0.8s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0% { r: 8; opacity: 1; }
+            50% { r: 12; opacity: 0.7; }
+            100% { r: 8; opacity: 1; }
+        }
+
+        @keyframes movingDot {
+            0% { r: 6; opacity: 0.8; }
+            50% { r: 10; opacity: 1; }
+            100% { r: 6; opacity: 0.8; }
+        }
+
+        .moving-indicator {
+            fill: #00ff00;
+            r: 10;
+            filter: drop-shadow(0 0 20px #00ff00);
+            animation: glow 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { 
+                r: 8;
+                opacity: 0.8;
+                filter: drop-shadow(0 0 15px #00ff00);
+            }
+            to { 
+                r: 12;
+                opacity: 1;
+                filter: drop-shadow(0 0 25px #00ff00);
+            }
+        }
+
+        .winner-announcement {
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
+            display: none;
+        }
+
+        .winner-text {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .winner-name {
+            font-size: 3rem;
+            color: #ffff00;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+
+        .desert-emoji {
+            font-size: 4rem;
+            margin: 20px 0;
+        }
+
+        .ad-container {
+            background: rgba(45, 45, 45, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .player-inputs {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Auto Ads -->
+    <div class="sidebar-ad left">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
+             crossorigin="anonymous"></script>
+    </div>
+    
+    <div class="sidebar-ad right">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
+             crossorigin="anonymous"></script>
+    </div>
+
+    <div class="container">
+        <!-- Top Manual Ad -->
+        <div class="ad-container">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
+                 crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                 style="display:block; text-align:center;"
+                 data-ad-layout="in-article"
+                 data-ad-format="fluid"
+                 data-ad-client="ca-pub-6884566372095161"
+                 data-ad-slot="7707926948"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+
+        <div class="header">
+            <img src="bsd-white.png" alt="로고" class="logo">
+            <h1>☕ 사다리 게임 ☕</h1>
+            <p class="subtitle">커피 쏘기 당첨자를 뽑아보세요!</p>
+        </div>
+
+        <div class="game-setup">
+            <div class="input-section">
+                <h3 style="margin-bottom: 20px; color: #ff6b6b;">참가자 이름 입력 (최대 10명)</h3>
+                <div class="player-inputs" id="playerInputs">
+                    <div class="player-input">
+                        <label>1번:</label>
+                        <input type="text" id="player1" placeholder="이름을 입력하세요">
+                    </div>
+                    <div class="player-input">
+                        <label>2번:</label>
+                        <input type="text" id="player2" placeholder="이름을 입력하세요">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn-secondary" onclick="addPlayer()">참가자 추가</button>
+                <button class="btn-secondary" onclick="removePlayer()">참가자 제거</button>
+                <button class="btn-primary" onclick="startGame(); playGameMusic();">게임 시작!</button>
+                <button class="btn-secondary" onclick="resetGame()">다시하기</button>
+            </div>
+        </div>
+
+        <!-- Middle Manual Ad -->
+        <div class="ad-container">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
+                 crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                 style="display:block; text-align:center;"
+                 data-ad-layout="in-article"
+                 data-ad-format="fluid"
+                 data-ad-client="ca-pub-6884566372095161"
+                 data-ad-slot="7707926948"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+
+        <div class="game-board" id="gameBoard" style="display: none;">
+            <div class="ladder-container">
+                <div class="players-row" id="playersRow"></div>
+                <svg class="ladder-svg" id="ladderSvg"></svg>
+                <div class="results-row" id="resultsRow"></div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-primary" onclick="runLadder()">사다리 타기!</button>
+            </div>
+        </div>
+
+        <div class="winner-announcement" id="winnerAnnouncement">
+            <div class="winner-text">🎉 당첨자 발표! 🎉</div>
+            <div class="winner-name" id="winnerName"></div>
+            <div class="desert-emoji">☕🥤🧋🍵🫖</div>
+            <div style="font-size: 1.5rem;" id="coffeeMessage">커피를 쏘세요! 🎊</div>
+        </div>
+
+        <!-- Bottom Manual Ad -->
+        <div class="ad-container">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
+                 crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                 style="display:block; text-align:center;"
+                 data-ad-layout="in-article"
+                 data-ad-format="fluid"
+                 data-ad-client="ca-pub-6884566372095161"
+                 data-ad-slot="7707926948"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+    </div>
+
+    <script>
+        let playerCount = 2;
+        let gameStarted = false;
+        let ladderPaths = [];
+        
+        const coffeeMenus = {
+            빽다방: [
+                "달달연유라떼",
+                "빽스치노",
+                "초콜릿라떼",
+                "딸기라떼",
+                "녹차라떼",
+                "타로라떼",
+                "흑임자라떼",
+                "달고나라떼"
+            ]
+        };
+        
+        const coffeeOptions = ['☕ 아메리카노', '🥤 카페라떼', '🧋 버블티', '🍵 녹차라떼', '☕ 카푸치노', '🥤 바닐라라떼', '🧋 타로라떼', '☕ 카라멜마키아토', '🥤 딸기라떼', '🍵 말차라떼'];
+
+        function addPlayer() {
+            if (playerCount >= 10) {
+                alert('최대 10명까지 참가할 수 있습니다.');
+                return;
+            }
+            
+            playerCount++;
+            const playerInputs = document.getElementById('playerInputs');
+            const newInput = document.createElement('div');
+            newInput.className = 'player-input';
+            newInput.innerHTML = `
+                <label>${playerCount}번:</label>
+                <input type="text" id="player${playerCount}" placeholder="이름을 입력하세요">
+            `;
+            playerInputs.appendChild(newInput);
+        }
+
+        function removePlayer() {
+            if (playerCount <= 2) {
+                alert('최소 2명은 참가해야 합니다.');
+                return;
+            }
+            
+            const playerInputs = document.getElementById('playerInputs');
+            playerInputs.removeChild(playerInputs.lastChild);
+            playerCount--;
+        }
+
+        function startGame() {
+            const players = [];
+            for (let i = 1; i <= playerCount; i++) {
+                const name = document.getElementById(`player${i}`).value.trim();
+                if (!name) {
+                    alert(`${i}번 참가자의 이름을 입력해주세요.`);
+                    return;
+                }
+                players.push(name);
+            }
+
+            setupLadder(players);
+            document.getElementById('gameBoard').style.display = 'block';
+            document.getElementById('winnerAnnouncement').style.display = 'none';
+            gameStarted = true;
+        }
+
+        function setupLadder(players) {
+            const playersRow = document.getElementById('playersRow');
+            const resultsRow = document.getElementById('resultsRow');
+            const ladderSvg = document.getElementById('ladderSvg');
+
+            playersRow.innerHTML = '';
+            resultsRow.innerHTML = '';
+            ladderSvg.innerHTML = '';
+
+            players.forEach(player => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'player-name';
+                playerDiv.textContent = player;
+                playersRow.appendChild(playerDiv);
+            });
+
+            const shuffledCoffees = [...coffeeOptions].sort(() => Math.random() - 0.5);
+            for (let i = 0; i < players.length; i++) {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result-item';
+                resultDiv.textContent = shuffledCoffees[i] || `커피 ${i + 1}`;
+                resultsRow.appendChild(resultDiv);
+            }
+
+            drawLadder(players.length);
+        }
+
+        function drawLadder(playerCount) {
+            const svg = document.getElementById('ladderSvg');
+            const width = svg.clientWidth;
+            const height = 300;
+            const stepWidth = width / (playerCount + 1);
+            const levels = 8;
+            const levelHeight = height / (levels + 1);
+
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+            for (let i = 0; i < playerCount; i++) {
+                const x = stepWidth * (i + 1);
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x);
+                line.setAttribute('y1', 20);
+                line.setAttribute('x2', x);
+                line.setAttribute('y2', height - 20);
+                line.setAttribute('class', 'ladder-line');
+                line.setAttribute('data-column', i);
+                svg.appendChild(line);
+            }
+
+            for (let level = 1; level <= levels; level++) {
+                const y = levelHeight * level;
+                const connections = generateRandomConnections(playerCount);
+                
+                connections.forEach(connection => {
+                    const x1 = stepWidth * (connection + 1);
+                    const x2 = stepWidth * (connection + 2);
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', x1);
+                    line.setAttribute('y1', y);
+                    line.setAttribute('x2', x2);
+                    line.setAttribute('y2', y);
+                    line.setAttribute('class', 'ladder-horizontal');
+                    line.setAttribute('data-level', level);
+                    line.setAttribute('data-from', connection);
+                    line.setAttribute('data-to', connection + 1);
+                    svg.appendChild(line);
+                });
+            }
+        }
+
+        function generateRandomConnections(playerCount) {
+            const connections = [];
+            for (let i = 0; i < playerCount - 1; i++) {
+                if (Math.random() > 0.4) {
+                    connections.push(i);
+                }
+            }
+            return connections;
+        }
+
+        function runLadder() {
+            if (!gameStarted) return;
+
+            const svg = document.getElementById('ladderSvg');
+            const lines = svg.querySelectorAll('.ladder-line');
+            const horizontals = svg.querySelectorAll('.ladder-horizontal');
+            
+            lines.forEach(line => line.classList.remove('active'));
+            
+            setTimeout(() => {
+                const randomPlayer = Math.floor(Math.random() * playerCount);
+                tracePath(randomPlayer);
+            }, 500);
+        }
+
+        function tracePath(startColumn) {
+            const svg = document.getElementById('ladderSvg');
+            const horizontals = svg.querySelectorAll('.ladder-horizontal');
+            const levels = 8;
+            let currentColumn = startColumn;
+            
+            const pathTrace = [];
+            pathTrace.push(currentColumn);
+
+            for (let level = 1; level <= levels; level++) {
+                const levelHorizontals = Array.from(horizontals).filter(h => 
+                    parseInt(h.getAttribute('data-level')) === level
+                );
+                
+                const leftConnection = levelHorizontals.find(h => 
+                    parseInt(h.getAttribute('data-to')) === currentColumn
+                );
+                const rightConnection = levelHorizontals.find(h => 
+                    parseInt(h.getAttribute('data-from')) === currentColumn
+                );
+
+                if (leftConnection) {
+                    currentColumn = parseInt(leftConnection.getAttribute('data-from'));
+                } else if (rightConnection) {
+                    currentColumn = parseInt(rightConnection.getAttribute('data-to'));
+                }
+                
+                pathTrace.push(currentColumn);
+            }
+
+            animatePath(pathTrace, startColumn);
+        }
+
+        function animatePath(pathTrace, startPlayer) {
+            const svg = document.getElementById('ladderSvg');
+            const lines = svg.querySelectorAll('.ladder-line');
+            const horizontals = svg.querySelectorAll('.ladder-horizontal');
+            
+            // 모든 요소 초기화
+            lines.forEach(line => line.classList.remove('active'));
+            horizontals.forEach(line => line.classList.remove('active'));
+            
+            // 기존 점 제거
+            const existingDots = svg.querySelectorAll('.moving-dot');
+            existingDots.forEach(dot => dot.remove());
+            
+            // 사다리 경로 계산
+            const width = svg.clientWidth || 800;
+            const height = 300;
+            const stepWidth = width / (playerCount + 1);
+            const levels = 8;
+            const levelHeight = height / (levels + 1);
+            
+            let delay = 0;
+            let movingDot = null;
+            
+            pathTrace.forEach((column, index) => {
+                setTimeout(() => {
+                    // 현재 세로선 활성화
+                    lines.forEach(line => line.classList.remove('active'));
+                    const currentLine = svg.querySelector(`[data-column="${column}"]`);
+                    if (currentLine) {
+                        currentLine.classList.add('active');
+                    }
+                    
+                    // 움직이는 점 생성 및 위치 업데이트
+                    if (!movingDot) {
+                        movingDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        movingDot.setAttribute('class', 'moving-dot moving-indicator');
+                        movingDot.setAttribute('r', '10');
+                        svg.appendChild(movingDot);
+                    }
+                    
+                    const currentX = stepWidth * (column + 1);
+                    const currentY = levelHeight * index + 20;
+                    
+                    movingDot.style.transition = 'all 0.5s ease-in-out';
+                    movingDot.setAttribute('cx', currentX);
+                    movingDot.setAttribute('cy', currentY);
+                    
+                    // 가로선 연결 애니메이션
+                    if (index < pathTrace.length - 1) {
+                        const nextColumn = pathTrace[index + 1];
+                        if (column !== nextColumn) {
+                            const horizontalLine = Array.from(horizontals).find(h => {
+                                const level = Math.floor(index / (levels / pathTrace.length)) + 1;
+                                const hLevel = parseInt(h.getAttribute('data-level'));
+                                const from = parseInt(h.getAttribute('data-from'));
+                                const to = parseInt(h.getAttribute('data-to'));
+                                return (from === column && to === nextColumn) || (from === nextColumn && to === column);
+                            });
+                            if (horizontalLine) {
+                                setTimeout(() => {
+                                    horizontalLine.classList.add('active');
+                                    // 가로선을 따라 점 이동
+                                    const nextX = stepWidth * (nextColumn + 1);
+                                    setTimeout(() => {
+                                        movingDot.setAttribute('cx', nextX);
+                                    }, 100);
+                                }, 200);
+                            }
+                        }
+                    }
+                    
+                    // 마지막 단계에서 결과 발표
+                    if (index === pathTrace.length - 1) {
+                        setTimeout(() => {
+                            // 점을 결과 위치로 이동
+                            const finalY = height - 20;
+                            movingDot.setAttribute('cy', finalY);
+                            setTimeout(() => {
+                                announceWinner(startPlayer, column);
+                            }, 500);
+                        }, 800);
+                    }
+                }, delay);
+                delay += 800;
+            });
+        }
+
+        function announceWinner(startPlayer, endColumn) {
+            const players = [];
+            for (let i = 1; i <= playerCount; i++) {
+                players.push(document.getElementById(`player${i}`).value.trim());
+            }
+            
+            const winnerName = players[startPlayer];
+            const resultsRow = document.getElementById('resultsRow');
+            const resultItems = resultsRow.children;
+            const winnerPrize = resultItems[endColumn].textContent;
+            
+            // 빽다방 메뉴에서 랜덤 선택
+            const randomMenu = coffeeMenus.빽다방[Math.floor(Math.random() * coffeeMenus.빽다방.length)];
+            
+            document.getElementById('winnerName').textContent = winnerName;
+            document.getElementById('winnerAnnouncement').style.display = 'block';
+            
+            // 팝업으로 당첨자와 메뉴 알림
+            setTimeout(() => {
+                alert(`🎉 당첨자: ${winnerName}님!\n\n${randomMenu}을(를) 쏘셔야 해요! ☕`);
+                document.getElementById('coffeeMessage').innerHTML = `<strong>${randomMenu}</strong>을(를) 쏘세요! ☕`;
+            }, 500);
+            
+            setTimeout(() => {
+                document.getElementById('winnerAnnouncement').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            }, 100);
+        }
+
+        function resetGame() {
+            document.getElementById('gameBoard').style.display = 'none';
+            document.getElementById('winnerAnnouncement').style.display = 'none';
+            gameStarted = false;
+            
+            // 음악 정지
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            }
+            
+            for (let i = 1; i <= playerCount; i++) {
+                document.getElementById(`player${i}`).value = '';
+            }
+        }
+
+        function toggleMusic() {
+            const musicControl = document.getElementById('musicControl');
+            const musicStatus = document.getElementById('musicStatus');
+            
+            if (!bgMusic) {
+                bgMusic = document.getElementById('bgMusic');
+                bgMusic.volume = 0.3;
+            }
+            
+            musicEnabled = !musicEnabled;
+            
+            if (musicEnabled) {
+                musicStatus.textContent = '음악 ON';
+                musicControl.classList.remove('muted');
+                if (gameStarted) {
+                    bgMusic.play().catch(e => console.log('Play failed:', e));
+                }
+            } else {
+                musicStatus.textContent = '음악 OFF';
+                musicControl.classList.add('muted');
+                bgMusic.pause();
+            }
+        }
+
+        function playGameMusic() {
+            if (musicEnabled && bgMusic) {
+                bgMusic.play().catch(e => {
+                    console.log('Auto-play prevented:', e);
+                });
+            }
+        }
+
+        // 페이지 로드 시 음악 초기화
+        window.addEventListener('load', function() {
+            bgMusic = document.getElementById('bgMusic');
+            bgMusic.volume = 0.3;
+        });
+    </script>
+</body>
+</html>

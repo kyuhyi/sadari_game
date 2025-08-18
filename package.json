@@ -1,0 +1,13 @@
+{
+  "name": "sadari-game",
+  "version": "1.0.0",
+  "description": "사다리 게임 - 디저트 당첨자 뽑기",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server .",
+    "build": "echo 'No build process needed for static site'"
+  },
+  "keywords": ["사다리게임", "게임", "디저트", "당첨자"],
+  "author": "",
+  "license": "MIT"
+}
