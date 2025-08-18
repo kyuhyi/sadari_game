@@ -843,23 +843,44 @@
             const resultsRow = document.getElementById('resultsRow');
             const resultItems = resultsRow.children;
             
-            // 당첨자 찾기
-            let actualWinner = null;
+            // 당첨 위치 찾기
+            let winnerPosition = -1;
+            let winnerMenu = '';
             
             for (let i = 0; i < resultItems.length; i++) {
                 if (resultItems[i].getAttribute('data-winner') === 'true') {
-                    // 이 위치에 도착한 플레이어 찾기
-                    const winnerData = allResults.find(result => result.resultIndex === i);
-                    if (winnerData) {
-                        actualWinner = {
-                            name: players[winnerData.playerIndex],
-                            playerIndex: winnerData.playerIndex,
-                            menu: resultItems[i].getAttribute('data-menu')
-                        };
-                        resultItems[i].style.animation = 'pulse 2s infinite';
-                    }
+                    winnerPosition = i;
+                    winnerMenu = resultItems[i].getAttribute('data-menu');
+                    break;
+                }
+            }
+            
+            // 당첨 위치에 도착한 플레이어 찾기
+            let actualWinner = null;
+            if (winnerPosition !== -1) {
+                const winnerData = allResults.find(result => result.resultIndex === winnerPosition);
+                if (winnerData) {
+                    actualWinner = {
+                        name: players[winnerData.playerIndex],
+                        playerIndex: winnerData.playerIndex,
+                        menu: winnerMenu
+                    };
+                }
+            }
+            
+            // 결과 표시 업데이트
+            for (let i = 0; i < resultItems.length; i++) {
+                if (i === winnerPosition && actualWinner) {
+                    // 당첨 위치는 그대로 유지하고 애니메이션 추가
+                    resultItems[i].style.animation = 'pulse 2s infinite';
+                    resultItems[i].style.opacity = '1';
                 } else {
-                    resultItems[i].style.opacity = '0.7';
+                    // 다른 위치는 "통과"로 변경
+                    resultItems[i].textContent = '통과';
+                    resultItems[i].style.background = '#666';
+                    resultItems[i].style.opacity = '0.5';
+                    resultItems[i].removeAttribute('data-winner');
+                    resultItems[i].removeAttribute('data-menu');
                 }
             }
             
