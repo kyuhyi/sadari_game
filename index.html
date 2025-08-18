@@ -391,7 +391,7 @@
         </div>
 
         <div class="header">
-            <div style="width:120px;height:120px;background:#ff6b6b;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:40px;margin:0 auto 20px;">☕</div>
+            <img src="bsd-white.png" alt="로고" class="logo" style="width:120px;height:auto;margin:0 auto 20px;display:block;">
             <h1>☕ 사다리 게임 ☕</h1>
             <p class="subtitle">커피 쏘기 당첨자를 뽑아보세요!</p>
         </div>
@@ -538,21 +538,28 @@
             document.getElementById('winnerAnnouncement').style.display = 'none';
             gameStarted = true;
             
-            // 게임 시작 시 음악 재생 - 사용자 상호작용에 의한 재생
-            if (musicEnabled && bgMusic) {
-                bgMusic.play().then(() => {
-                    console.log('Music started successfully');
-                }).catch(e => {
-                    console.log('Music blocked, will try after interaction:', e);
-                    // 사용자가 어떤 버튼을 누를 때 재생 시도
-                    document.addEventListener('click', function tryPlay() {
-                        if (musicEnabled && bgMusic) {
-                            bgMusic.play().catch(e => console.log('Still blocked'));
-                        }
-                        document.removeEventListener('click', tryPlay);
-                    }, { once: true });
-                });
-            }
+            // 게임 시작 시 음악 재생 - 강제 재생 시도
+            setTimeout(() => {
+                if (musicEnabled && bgMusic) {
+                    bgMusic.currentTime = 0;
+                    const playPromise = bgMusic.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            console.log('Music started successfully');
+                        }).catch(e => {
+                            console.log('Music blocked, adding click listener:', e);
+                            // 다음 클릭에서 재생
+                            const playOnClick = () => {
+                                if (musicEnabled && bgMusic) {
+                                    bgMusic.play().catch(e => console.log('Still blocked'));
+                                }
+                                document.removeEventListener('click', playOnClick);
+                            };
+                            document.addEventListener('click', playOnClick, { once: true });
+                        });
+                    }
+                }
+            }, 200);
             
             setTimeout(() => {
                 gameStarting = false;
@@ -590,13 +597,18 @@
 
         function drawLadder(playerCount) {
             const svg = document.getElementById('ladderSvg');
-            const width = svg.clientWidth;
+            const width = 800; // 고정 크기 사용
             const height = 300;
             const stepWidth = width / (playerCount + 1);
             const levels = 8;
             const levelHeight = height / (levels + 1);
 
             svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+
+            // 기존 요소 제거
+            svg.innerHTML = '';
 
             for (let i = 0; i < playerCount; i++) {
                 const x = stepWidth * (i + 1);
@@ -607,6 +619,8 @@
                 line.setAttribute('y2', height - 20);
                 line.setAttribute('class', 'ladder-line');
                 line.setAttribute('data-column', i);
+                line.style.stroke = '#666';
+                line.style.strokeWidth = '3';
                 svg.appendChild(line);
             }
 
@@ -626,9 +640,13 @@
                     line.setAttribute('data-level', level);
                     line.setAttribute('data-from', connection);
                     line.setAttribute('data-to', connection + 1);
+                    line.style.stroke = '#888';
+                    line.style.strokeWidth = '2';
                     svg.appendChild(line);
                 });
             }
+            
+            console.log('Ladder drawn with', playerCount, 'players');
         }
 
         function generateRandomConnections(playerCount) {
@@ -999,7 +1017,29 @@
         // 페이지 로드 시 음악 초기화
         window.addEventListener('load', function() {
             bgMusic = document.getElementById('bgMusic');
-            bgMusic.volume = 0.3;
+            if (bgMusic) {
+                bgMusic.volume = 0.3;
+                bgMusic.preload = 'auto';
+                
+                // 음악 파일 로드 확인
+                bgMusic.addEventListener('loadeddata', function() {
+                    console.log('Music file loaded successfully');
+                });
+                bgMusic.addEventListener('error', function(e) {
+                    console.log('Music file load error:', e);
+                });
+                
+                // 사용자 첫 상호작용 대기
+                const enableAudio = () => {
+                    if (bgMusic && musicEnabled) {
+                        bgMusic.play().catch(e => console.log('First play failed'));
+                    }
+                    document.removeEventListener('click', enableAudio);
+                    document.removeEventListener('touchstart', enableAudio);
+                };
+                document.addEventListener('click', enableAudio, { once: true });
+                document.addEventListener('touchstart', enableAudio, { once: true });
+            }
         });
     </script>
 </body>
