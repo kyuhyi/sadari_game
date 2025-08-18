@@ -106,22 +106,8 @@
         .logo {
             width: 120px;
             height: 120px;
-            background: linear-gradient(135deg, #ff6b6b, #ff5252);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 50px;
             margin: 0 auto 20px;
-            box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            animation: logoGlow 3s ease-in-out infinite;
-        }
-        
-        @keyframes logoGlow {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            display: block;
         }
 
         h1 {
@@ -271,6 +257,56 @@
             border: 2px solid #555;
         }
 
+        .ladder-line {
+            stroke: #666;
+            stroke-width: 3;
+            transition: all 0.3s ease;
+        }
+
+        .ladder-line.active {
+            stroke: #ff6b6b;
+            stroke-width: 6;
+            filter: drop-shadow(0 0 10px #ff6b6b);
+        }
+
+        .ladder-horizontal {
+            stroke: #888;
+            stroke-width: 3;
+            transition: all 0.3s ease;
+        }
+
+        .ladder-horizontal.active {
+            stroke: #4ecdc4;
+            stroke-width: 5;
+            filter: drop-shadow(0 0 8px #4ecdc4);
+        }
+
+        .moving-indicator {
+            fill: #00ff00;
+            r: 10;
+            filter: drop-shadow(0 0 20px #00ff00);
+            animation: glow 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { 
+                r: 8;
+                opacity: 0.8;
+                filter: drop-shadow(0 0 15px #00ff00);
+            }
+            to { 
+                r: 12;
+                opacity: 1;
+                filter: drop-shadow(0 0 25px #00ff00);
+            }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         .winner-announcement {
             background: linear-gradient(135deg, #ff6b6b, #ff5252);
             border-radius: 15px;
@@ -360,8 +396,9 @@
     </div>
     
     <!-- Background Music -->
-    <audio id="bgMusic" loop>
+    <audio id="bgMusic" loop preload="auto">
         <source src="bsd.mp3" type="audio/mpeg">
+        <source src="bsd.mp3" type="audio/mp3">
     </audio>
 
     <div class="container">
@@ -379,7 +416,7 @@
         </div>
 
         <div class="header">
-            <div class="logo">☕</div>
+            <img src="bsd-white.png" alt="BSD 로고" class="logo" onerror="this.style.display='none'">
             <h1>☕ 사다리 게임 ☕</h1>
             <p class="subtitle">커피 쏘기 당첨자를 뽑아보세요!</p>
         </div>
@@ -553,10 +590,22 @@
                 playersRow.appendChild(playerDiv);
             });
 
+            // 랜덤 당첨자 미리 배치
+            const winnerIndex = Math.floor(Math.random() * players.length);
+            const randomMenu = coffeeMenus.빽다방[Math.floor(Math.random() * coffeeMenus.빽다방.length)];
+            
             for (let i = 0; i < players.length; i++) {
                 const resultDiv = document.createElement('div');
                 resultDiv.className = 'result-item';
-                resultDiv.textContent = '?';
+                if (i === winnerIndex) {
+                    resultDiv.textContent = randomMenu;
+                    resultDiv.style.background = '#ff6b6b';
+                    resultDiv.setAttribute('data-winner', 'true');
+                    resultDiv.setAttribute('data-menu', randomMenu);
+                } else {
+                    resultDiv.textContent = '통과';
+                    resultDiv.style.background = '#4ecdc4';
+                }
                 resultsRow.appendChild(resultDiv);
             }
 
@@ -565,15 +614,19 @@
 
         function drawLadder(playerCount) {
             const svg = document.getElementById('ladderSvg');
-            svg.innerHTML = '';
-            
             const width = 800;
             const height = 300;
             const stepWidth = width / (playerCount + 1);
             const levels = 8;
             const levelHeight = height / (levels + 1);
 
-            // 세로선 그리기
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+
+            // 기존 요소 제거
+            svg.innerHTML = '';
+
             for (let i = 0; i < playerCount; i++) {
                 const x = stepWidth * (i + 1);
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -581,12 +634,13 @@
                 line.setAttribute('y1', 20);
                 line.setAttribute('x2', x);
                 line.setAttribute('y2', height - 20);
+                line.setAttribute('class', 'ladder-line');
+                line.setAttribute('data-column', i);
                 line.style.stroke = '#666';
                 line.style.strokeWidth = '3';
                 svg.appendChild(line);
             }
 
-            // 가로선 그리기
             for (let level = 1; level <= levels; level++) {
                 const y = levelHeight * level;
                 const connections = generateConnections(playerCount);
@@ -599,13 +653,17 @@
                     line.setAttribute('y1', y);
                     line.setAttribute('x2', x2);
                     line.setAttribute('y2', y);
+                    line.setAttribute('class', 'ladder-horizontal');
+                    line.setAttribute('data-level', level);
+                    line.setAttribute('data-from', connection);
+                    line.setAttribute('data-to', connection + 1);
                     line.style.stroke = '#888';
                     line.style.strokeWidth = '2';
                     svg.appendChild(line);
                 });
             }
             
-            console.log('사다리 그리기 완료');
+            console.log('Ladder drawn with', playerCount, 'players');
         }
 
         function generateConnections(playerCount) {
@@ -618,11 +676,165 @@
             return connections;
         }
 
+        let currentPlayerIndex = 0;
+        let allResults = [];
+        
         function runLadder() {
             if (!gameStarted) return;
             
-            // 랜덤 당첨자 선택
-            const winnerIndex = Math.floor(Math.random() * playerCount);
+            const svg = document.getElementById('ladderSvg');
+            const lines = svg.querySelectorAll('.ladder-line');
+            
+            lines.forEach(line => line.classList.remove('active'));
+            allResults = [];
+            currentPlayerIndex = 0;
+            
+            // 1번부터 순차적으로 진행
+            setTimeout(() => {
+                runNextPlayer();
+            }, 500);
+        }
+        
+        function runNextPlayer() {
+            if (currentPlayerIndex >= playerCount) {
+                // 모든 플레이어 완료 후 결과 처리
+                processAllResults();
+                return;
+            }
+            
+            const players = [];
+            for (let i = 1; i <= playerCount; i++) {
+                players.push(document.getElementById(`player${i}`).value.trim());
+            }
+            
+            // 현재 플레이어 표시
+            const playersRow = document.getElementById('playersRow');
+            const playerDivs = playersRow.children;
+            
+            // 모든 플레이어 스타일 초기화
+            for (let i = 0; i < playerDivs.length; i++) {
+                playerDivs[i].style.background = '#ff6b6b';
+                playerDivs[i].style.transform = 'scale(1)';
+            }
+            
+            // 현재 플레이어 강조
+            if (playerDivs[currentPlayerIndex]) {
+                playerDivs[currentPlayerIndex].style.background = '#00ff00';
+                playerDivs[currentPlayerIndex].style.transform = 'scale(1.1)';
+            }
+            
+            setTimeout(() => {
+                tracePath(currentPlayerIndex);
+            }, 500);
+        }
+
+        function tracePath(startColumn) {
+            const svg = document.getElementById('ladderSvg');
+            const horizontals = svg.querySelectorAll('.ladder-horizontal');
+            const levels = 8;
+            let currentColumn = startColumn;
+            
+            const pathTrace = [];
+            pathTrace.push(currentColumn);
+
+            for (let level = 1; level <= levels; level++) {
+                const levelHorizontals = Array.from(horizontals).filter(h => 
+                    parseInt(h.getAttribute('data-level')) === level
+                );
+                
+                const leftConnection = levelHorizontals.find(h => 
+                    parseInt(h.getAttribute('data-to')) === currentColumn
+                );
+                const rightConnection = levelHorizontals.find(h => 
+                    parseInt(h.getAttribute('data-from')) === currentColumn
+                );
+
+                if (leftConnection) {
+                    currentColumn = parseInt(leftConnection.getAttribute('data-from'));
+                } else if (rightConnection) {
+                    currentColumn = parseInt(rightConnection.getAttribute('data-to'));
+                }
+                
+                pathTrace.push(currentColumn);
+            }
+
+            animatePath(pathTrace, startColumn);
+        }
+
+        function animatePath(pathTrace, startPlayer) {
+            const svg = document.getElementById('ladderSvg');
+            const lines = svg.querySelectorAll('.ladder-line');
+            const horizontals = svg.querySelectorAll('.ladder-horizontal');
+            
+            // 모든 요소 초기화
+            lines.forEach(line => line.classList.remove('active'));
+            horizontals.forEach(line => line.classList.remove('active'));
+            
+            // 기존 점 제거
+            const existingDots = svg.querySelectorAll('.moving-dot');
+            existingDots.forEach(dot => dot.remove());
+            
+            // 사다리 경로 계산
+            const width = 800;
+            const height = 300;
+            const stepWidth = width / (playerCount + 1);
+            const levels = 8;
+            const levelHeight = height / (levels + 1);
+            
+            let delay = 0;
+            let movingDot = null;
+            
+            pathTrace.forEach((column, index) => {
+                setTimeout(() => {
+                    // 현재 세로선 활성화
+                    lines.forEach(line => line.classList.remove('active'));
+                    const currentLine = svg.querySelector(`[data-column="${column}"]`);
+                    if (currentLine) {
+                        currentLine.classList.add('active');
+                    }
+                    
+                    // 움직이는 점 생성 및 위치 업데이트
+                    if (!movingDot) {
+                        movingDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        movingDot.setAttribute('class', 'moving-dot moving-indicator');
+                        movingDot.setAttribute('r', '10');
+                        svg.appendChild(movingDot);
+                    }
+                    
+                    const currentX = stepWidth * (column + 1);
+                    const currentY = levelHeight * index + 20;
+                    
+                    movingDot.style.transition = 'all 0.5s ease-in-out';
+                    movingDot.setAttribute('cx', currentX);
+                    movingDot.setAttribute('cy', currentY);
+                    
+                    // 마지막 단계에서 결과 발표
+                    if (index === pathTrace.length - 1) {
+                        setTimeout(() => {
+                            // 점을 결과 위치로 이동
+                            const finalY = height - 20;
+                            movingDot.setAttribute('cy', finalY);
+                            setTimeout(() => {
+                                // 결과 저장
+                                allResults.push({
+                                    playerIndex: startPlayer,
+                                    resultIndex: column
+                                });
+                                
+                                // 다음 플레이어로 진행
+                                currentPlayerIndex++;
+                                setTimeout(() => {
+                                    runNextPlayer();
+                                }, 1000);
+                            }, 500);
+                        }, 800);
+                    }
+                }, delay);
+                delay += 800;
+            });
+        }
+        
+        function processAllResults() {
             const players = [];
             for (let i = 1; i <= playerCount; i++) {
                 players.push(document.getElementById(`player${i}`).value.trim());
@@ -631,41 +843,36 @@
             const resultsRow = document.getElementById('resultsRow');
             const resultItems = resultsRow.children;
             
-            // 결과 표시
+            // 당첨자 찾기
+            let actualWinner = null;
+            
             for (let i = 0; i < resultItems.length; i++) {
-                if (i === winnerIndex) {
-                    resultItems[i].textContent = '🎉 당첨 🎉';
-                    resultItems[i].style.background = '#ff6b6b';
-                    resultItems[i].style.animation = 'pulse 2s infinite';
+                if (resultItems[i].getAttribute('data-winner') === 'true') {
+                    // 이 위치에 도착한 플레이어 찾기
+                    const winnerData = allResults.find(result => result.resultIndex === i);
+                    if (winnerData) {
+                        actualWinner = {
+                            name: players[winnerData.playerIndex],
+                            playerIndex: winnerData.playerIndex,
+                            menu: resultItems[i].getAttribute('data-menu')
+                        };
+                        resultItems[i].style.animation = 'pulse 2s infinite';
+                    }
                 } else {
-                    resultItems[i].textContent = '통과';
-                    resultItems[i].style.background = '#666';
-                    resultItems[i].style.opacity = '0.5';
+                    resultItems[i].style.opacity = '0.7';
                 }
             }
             
-            // 당첨자 발표
-            const winnerName = players[winnerIndex];
-            const randomMenu = coffeeMenus.빽다방[Math.floor(Math.random() * coffeeMenus.빽다방.length)];
-            
-            document.getElementById('winnerName').textContent = winnerName;
-            document.getElementById('winnerAnnouncement').style.display = 'block';
-            
-            setTimeout(() => {
-                alert(`🎉 당첨자: ${winnerName}님!\n\n빽다방 ${randomMenu}을(를) 쏘셔야 해요! ☕`);
-                document.getElementById('coffeeMessage').innerHTML = `<strong>빽다방 ${randomMenu}</strong>을(를) 쏘세요! ☕`;
-            }, 500);
-            
-            // 비당첨자들 축하
-            setTimeout(() => {
-                for (let i = 0; i < players.length; i++) {
-                    if (i !== winnerIndex) {
-                        setTimeout(() => {
-                            alert(`🎉 축하합니다 ${players[i]}님!\n\n돈을 아끼셨네요! 💰`);
-                        }, (i + 1) * 1000);
-                    }
-                }
-            }, 1000);
+            // 당첨자만 팝업 표시
+            if (actualWinner) {
+                document.getElementById('winnerName').textContent = actualWinner.name;
+                document.getElementById('winnerAnnouncement').style.display = 'block';
+                
+                setTimeout(() => {
+                    alert(`🎉 당첨자: ${actualWinner.name}님!\n\n빽다방 ${actualWinner.menu}을(를) 쏘셔야 해요! ☕`);
+                    document.getElementById('coffeeMessage').innerHTML = `<strong>빽다방 ${actualWinner.menu}</strong>을(를) 쏘세요! ☕`;
+                }, 500);
+            }
         }
 
         function resetGame() {
