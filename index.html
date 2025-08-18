@@ -341,15 +341,27 @@
 <body>
     <!-- Sidebar Auto Ads -->
     <div class="sidebar-ad left">
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
-             crossorigin="anonymous"></script>
-        <!-- 자동 광고는 AdSense에서 자동으로 배치됩니다 -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-6884566372095161"
+             data-ad-slot="auto"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
     </div>
     
     <div class="sidebar-ad right">
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6884566372095161"
-             crossorigin="anonymous"></script>
-        <!-- 자동 광고는 AdSense에서 자동으로 배치됩니다 -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-6884566372095161"
+             data-ad-slot="auto"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
     </div>
 
     <!-- Music Control -->
@@ -521,6 +533,15 @@
             document.getElementById('gameBoard').style.display = 'block';
             document.getElementById('winnerAnnouncement').style.display = 'none';
             gameStarted = true;
+            
+            // 게임 시작 시 음악 재생 - 사용자 상호작용으로 간주
+            setTimeout(() => {
+                if (musicEnabled && bgMusic) {
+                    bgMusic.play().catch(e => {
+                        console.log('Music play blocked, trying on next click:', e);
+                    });
+                }
+            }, 100);
         }
 
         function setupLadder(players) {
@@ -539,20 +560,13 @@
                 playersRow.appendChild(playerDiv);
             });
 
-            // 당첨자는 1명이므로 하나의 "당첨" 표시만 랜덤 위치에 배치
-            const winnerPosition = Math.floor(Math.random() * players.length);
+            // 최초에는 빈 공간만 보여주고, 사다리 타기 후 결과만 표시
             for (let i = 0; i < players.length; i++) {
                 const resultDiv = document.createElement('div');
                 resultDiv.className = 'result-item';
-                if (i === winnerPosition) {
-                    resultDiv.textContent = '🎉 당첨 🎉';
-                    resultDiv.style.background = '#ff6b6b';
-                    resultDiv.style.animation = 'pulse 2s infinite';
-                } else {
-                    resultDiv.textContent = '꽝';
-                    resultDiv.style.background = '#666';
-                    resultDiv.style.opacity = '0.7';
-                }
+                resultDiv.textContent = '?';
+                resultDiv.style.background = '#4ecdc4';
+                resultDiv.style.opacity = '0.8';
                 resultsRow.appendChild(resultDiv);
             }
 
@@ -756,7 +770,19 @@
             const winnerName = players[startPlayer];
             const resultsRow = document.getElementById('resultsRow');
             const resultItems = resultsRow.children;
-            const winnerPrize = resultItems[endColumn].textContent;
+            
+            // 결과 표시 - 당첨자 위치에만 "당첨" 표시
+            for (let i = 0; i < resultItems.length; i++) {
+                if (i === endColumn) {
+                    resultItems[i].textContent = '🎉 당첨 🎉';
+                    resultItems[i].style.background = '#ff6b6b';
+                    resultItems[i].style.animation = 'pulse 2s infinite';
+                } else {
+                    resultItems[i].textContent = '통과';
+                    resultItems[i].style.background = '#666';
+                    resultItems[i].style.opacity = '0.5';
+                }
+            }
             
             // 빽다방 메뉴에서 랜덤 선택
             const randomMenu = coffeeMenus.빽다방[Math.floor(Math.random() * coffeeMenus.빽다방.length)];
@@ -764,10 +790,10 @@
             document.getElementById('winnerName').textContent = winnerName;
             document.getElementById('winnerAnnouncement').style.display = 'block';
             
-            // 팝업으로 당첨자와 메뉴 알림
+            // 팝업으로 당첨자와 메뉴 알림 - 브랜드명 포함
             setTimeout(() => {
-                alert(`🎉 당첨자: ${winnerName}님!\n\n${randomMenu}을(를) 쏘셔야 해요! ☕`);
-                document.getElementById('coffeeMessage').innerHTML = `<strong>${randomMenu}</strong>을(를) 쏘세요! ☕`;
+                alert(`🎉 당첨자: ${winnerName}님!\n\n빽다방 ${randomMenu}을(를) 쏘셔야 해요! ☕`);
+                document.getElementById('coffeeMessage').innerHTML = `<strong>빽다방 ${randomMenu}</strong>을(를) 쏘세요! ☕`;
             }, 500);
             
             setTimeout(() => {
@@ -799,7 +825,9 @@
             
             if (!bgMusic) {
                 bgMusic = document.getElementById('bgMusic');
-                bgMusic.volume = 0.3;
+                if (bgMusic) {
+                    bgMusic.volume = 0.3;
+                }
             }
             
             musicEnabled = !musicEnabled;
@@ -807,13 +835,24 @@
             if (musicEnabled) {
                 musicStatus.textContent = '음악 ON';
                 musicControl.classList.remove('muted');
-                if (gameStarted) {
-                    bgMusic.play().catch(e => console.log('Play failed:', e));
+                if (bgMusic) {
+                    bgMusic.play().catch(e => {
+                        console.log('Music play failed:', e);
+                        // 사용자 상호작용이 필요한 경우 다음 클릭에서 재생
+                        document.addEventListener('click', function playOnClick() {
+                            if (musicEnabled && bgMusic) {
+                                bgMusic.play().catch(e => console.log('Still blocked:', e));
+                            }
+                            document.removeEventListener('click', playOnClick);
+                        }, { once: true });
+                    });
                 }
             } else {
                 musicStatus.textContent = '음악 OFF';
                 musicControl.classList.add('muted');
-                bgMusic.pause();
+                if (bgMusic) {
+                    bgMusic.pause();
+                }
             }
         }
 
