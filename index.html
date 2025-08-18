@@ -33,6 +33,30 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            position: relative;
+        }
+
+        .sidebar-ad {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 160px;
+            height: 600px;
+            z-index: 100;
+        }
+
+        .sidebar-ad.left {
+            left: 10px;
+        }
+
+        .sidebar-ad.right {
+            right: 10px;
+        }
+
+        @media (max-width: 1400px) {
+            .sidebar-ad {
+                display: none;
+            }
         }
 
         .music-control {
@@ -207,6 +231,29 @@
     </style>
 </head>
 <body>
+    <!-- Sidebar Auto Ads -->
+    <div class="sidebar-ad left">
+        <ins class="adsbygoogle"
+             style="display:block;width:160px;height:600px;"
+             data-ad-client="ca-pub-6884566372095161"
+             data-ad-slot="auto"
+             data-ad-format="vertical"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+    
+    <div class="sidebar-ad right">
+        <ins class="adsbygoogle"
+             style="display:block;width:160px;height:600px;"
+             data-ad-client="ca-pub-6884566372095161"
+             data-ad-slot="auto"
+             data-ad-format="vertical"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
     <!-- Music Control -->
     <div class="music-control" onclick="toggleMusic()">
         🎵 <span id="musicStatus">음악 ON</span>
@@ -230,7 +277,7 @@
         </div>
 
         <div class="header">
-            <img src="bsd-white.png" alt="BSD 로고" class="logo" onerror="this.outerHTML='<div style=\\'width:300px;height:300px;background:#ff6b6b;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:80px;margin:0 auto 20px;max-width:90%;\\'>☕</div>'">
+            <div style="width:300px;height:200px;background:linear-gradient(135deg, #ff6b6b, #ff5252);border-radius:20px;display:flex;align-items:center;justify-content:center;color:white;font-size:24px;font-weight:bold;margin:0 auto 20px;max-width:90%;box-shadow:0 8px 32px rgba(255,107,107,0.3);border:3px solid rgba(255,255,255,0.2);">BSD 사다리 게임</div>
             <h1>☕ 사다리 게임 ☕</h1>
             <p class="subtitle">커피 쏘기 당첨자를 뽑아보세요!</p>
         </div>
@@ -476,8 +523,14 @@
             
             if (musicEnabled) {
                 musicStatus.textContent = '음악 ON';
-                if (bgMusic && gameStarted) {
-                    bgMusic.play().catch(e => console.log('음악 재생 실패'));
+                if (bgMusic) {
+                    bgMusic.muted = false;
+                    bgMusic.volume = 0.5;
+                    bgMusic.play().then(() => {
+                        console.log('✅ 음악 토글로 재생 성공');
+                    }).catch(e => {
+                        console.log('❌ 음악 토글 재생 실패:', e);
+                    });
                 }
             } else {
                 musicStatus.textContent = '음악 OFF';
@@ -491,23 +544,38 @@
         document.addEventListener('DOMContentLoaded', function() {
             bgMusic = document.getElementById('bgMusic');
             if (bgMusic) {
-                bgMusic.volume = 0.3;
+                bgMusic.volume = 0.5; // 볼륨 증가
                 
-                // 음소거 상태로 자동재생 시작 후 즉시 음소거 해제
+                // 즉시 음소거 해제하여 음악 재생
+                bgMusic.muted = false;
+                
+                // 다양한 시점에서 음악 재생 시도
                 setTimeout(() => {
                     if (bgMusic && musicEnabled) {
-                        bgMusic.muted = false;
-                        console.log('음악 자동재생 시작');
+                        bgMusic.play().then(() => {
+                            console.log('✅ 자동 음악 재생 성공');
+                        }).catch(e => {
+                            console.log('❌ 자동재생 차단, 사용자 클릭 필요');
+                        });
                     }
-                }, 1000);
+                }, 500);
                 
-                // 사용자 상호작용 시에도 음악 재생 보장
-                document.addEventListener('click', function() {
+                // 사용자 상호작용 즉시 음악 재생
+                const startMusic = () => {
                     if (musicEnabled && bgMusic) {
                         bgMusic.muted = false;
-                        bgMusic.play().catch(e => console.log('음악 재생 실패'));
+                        bgMusic.volume = 0.5;
+                        bgMusic.play().then(() => {
+                            console.log('✅ 사용자 클릭으로 음악 재생 성공');
+                        }).catch(e => {
+                            console.log('❌ 음악 재생 실패:', e);
+                        });
                     }
-                }, { once: true });
+                };
+                
+                document.addEventListener('click', startMusic, { once: true });
+                document.addEventListener('touchstart', startMusic, { once: true });
+                document.addEventListener('keydown', startMusic, { once: true });
             }
         });
 
