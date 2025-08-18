@@ -937,6 +937,28 @@
             bgMusic = document.getElementById('bgMusic');
             if (bgMusic) {
                 bgMusic.volume = 0.3;
+                
+                // 즉시 음악 재생 시도
+                const playPromise = bgMusic.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log('✅ 자동 음악 재생 성공');
+                    }).catch(e => {
+                        console.log('❌ 자동 재생 차단됨, 사용자 클릭 후 재생됨');
+                        
+                        // 페이지 어디든 클릭 시 음악 재생
+                        document.addEventListener('click', function playOnFirstClick() {
+                            if (musicEnabled && bgMusic) {
+                                bgMusic.play().then(() => {
+                                    console.log('✅ 사용자 클릭 후 음악 재생 성공');
+                                }).catch(e => {
+                                    console.log('❌ 음악 재생 실패:', e);
+                                });
+                            }
+                            document.removeEventListener('click', playOnFirstClick);
+                        });
+                    });
+                }
                 console.log('음악 파일 준비 완료');
             }
             console.log('페이지 로드 완료');
