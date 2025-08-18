@@ -28,36 +28,11 @@
             font-family: 'Arial', sans-serif;
             min-height: 100vh;
             padding: 20px;
-            position: relative;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            position: relative;
-        }
-
-        .sidebar-ad {
-            position: fixed;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 160px;
-            height: 600px;
-            z-index: 100;
-        }
-
-        .sidebar-ad.left {
-            left: 10px;
-        }
-
-        .sidebar-ad.right {
-            right: 10px;
-        }
-
-        @media (max-width: 1400px) {
-            .sidebar-ad {
-                display: none;
-            }
         }
 
         .music-control {
@@ -69,33 +44,9 @@
             border-radius: 50px;
             padding: 10px 20px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
+            color: white;
             font-weight: bold;
-        }
-
-        .music-control:hover {
-            background: rgba(255, 107, 107, 0.2);
-            transform: scale(1.05);
-        }
-
-        .music-icon {
-            font-size: 18px;
-            animation: musicNote 2s ease-in-out infinite;
-        }
-
-        .music-control.muted .music-icon {
-            animation: none;
-            opacity: 0.5;
-        }
-
-        @keyframes musicNote {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
+            z-index: 1000;
         }
 
         .header {
@@ -104,8 +55,9 @@
         }
 
         .logo {
-            width: 200px;
+            width: 300px;
             height: auto;
+            max-width: 90%;
             margin: 0 auto 20px;
             display: block;
         }
@@ -114,7 +66,6 @@
             color: #ff6b6b;
             font-size: 2.5rem;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
         .subtitle {
@@ -127,12 +78,6 @@
             border-radius: 15px;
             padding: 30px;
             margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .input-section {
-            margin-bottom: 20px;
         }
 
         .player-inputs {
@@ -162,12 +107,6 @@
             background: #333;
             color: #fff;
             font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        .player-input input:focus {
-            outline: none;
-            border-color: #ff6b6b;
         }
 
         .controls {
@@ -185,7 +124,6 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
-            text-transform: uppercase;
         }
 
         .btn-primary {
@@ -193,19 +131,9 @@
             color: white;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-        }
-
         .btn-secondary {
             background: linear-gradient(135deg, #4ecdc4, #44a08d);
             color: white;
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
         }
 
         .game-board {
@@ -213,22 +141,13 @@
             border-radius: 15px;
             padding: 30px;
             margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .ladder-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
+            display: none;
         }
 
         .players-row, .results-row {
             display: flex;
             justify-content: space-around;
-            width: 100%;
-            max-width: 800px;
+            margin: 20px 0;
         }
 
         .player-name, .result-item {
@@ -239,72 +158,10 @@
             font-weight: bold;
             text-align: center;
             min-width: 80px;
-            box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
-            transition: all 0.3s;
         }
 
         .result-item {
             background: #4ecdc4;
-            box-shadow: 0 4px 8px rgba(78, 205, 196, 0.3);
-        }
-
-        .ladder-svg {
-            width: 100%;
-            max-width: 800px;
-            height: 300px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            border: 2px solid #555;
-        }
-
-        .ladder-line {
-            stroke: #666;
-            stroke-width: 3;
-            transition: all 0.3s ease;
-        }
-
-        .ladder-line.active {
-            stroke: #ff6b6b;
-            stroke-width: 6;
-            filter: drop-shadow(0 0 10px #ff6b6b);
-        }
-
-        .ladder-horizontal {
-            stroke: #888;
-            stroke-width: 3;
-            transition: all 0.3s ease;
-        }
-
-        .ladder-horizontal.active {
-            stroke: #4ecdc4;
-            stroke-width: 5;
-            filter: drop-shadow(0 0 8px #4ecdc4);
-        }
-
-        .moving-indicator {
-            fill: #00ff00;
-            r: 10;
-            filter: drop-shadow(0 0 20px #00ff00);
-            animation: glow 0.5s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from { 
-                r: 8;
-                opacity: 0.8;
-                filter: drop-shadow(0 0 15px #00ff00);
-            }
-            to { 
-                r: 12;
-                opacity: 1;
-                filter: drop-shadow(0 0 25px #00ff00);
-            }
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
         }
 
         .winner-announcement {
@@ -313,7 +170,6 @@
             padding: 30px;
             text-align: center;
             margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
             display: none;
         }
 
@@ -326,7 +182,6 @@
         .winner-name {
             font-size: 3rem;
             color: #ffff00;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             margin-bottom: 10px;
         }
 
@@ -341,68 +196,29 @@
             padding: 20px;
             text-align: center;
             margin: 20px 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .player-inputs {
-                grid-template-columns: 1fr;
-            }
-            
-            .controls {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            button {
-                width: 100%;
-                max-width: 300px;
-            }
+            h1 { font-size: 2rem; }
+            .player-inputs { grid-template-columns: 1fr; }
+            .controls { flex-direction: column; align-items: center; }
+            button { width: 100%; max-width: 300px; }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar Auto Ads -->
-    <div class="sidebar-ad left">
-        <ins class="adsbygoogle"
-             style="display:block;width:160px;height:600px;"
-             data-ad-client="ca-pub-6884566372095161"
-             data-ad-slot="auto"
-             data-ad-format="vertical"></ins>
-        <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-    </div>
-    
-    <div class="sidebar-ad right">
-        <ins class="adsbygoogle"
-             style="display:block;width:160px;height:600px;"
-             data-ad-client="ca-pub-6884566372095161"
-             data-ad-slot="auto"
-             data-ad-format="vertical"></ins>
-        <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-    </div>
-
     <!-- Music Control -->
-    <div class="music-control" id="musicControl" onclick="toggleMusic()">
-        <span class="music-icon">🎵</span>
-        <span id="musicStatus">음악 ON</span>
+    <div class="music-control" onclick="toggleMusic()">
+        🎵 <span id="musicStatus">음악 ON</span>
     </div>
     
     <!-- Background Music -->
-    <audio id="bgMusic" loop preload="auto" autoplay>
+    <audio id="bgMusic" loop preload="auto" autoplay muted>
         <source src="bsd.mp3" type="audio/mpeg">
-        <source src="bsd.mp3" type="audio/mp3">
     </audio>
 
     <div class="container">
-        <!-- Top Manual Ad -->
+        <!-- Top Ad -->
         <div class="ad-container">
             <ins class="adsbygoogle"
                  style="display:block; text-align:center;"
@@ -410,41 +226,37 @@
                  data-ad-format="fluid"
                  data-ad-client="ca-pub-6884566372095161"
                  data-ad-slot="7707926948"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
         </div>
 
         <div class="header">
-            <img src="bsd-white.png" alt="BSD 로고" class="logo" onerror="this.outerHTML='<div class=\\'logo\\' style=\\'width:200px;height:200px;background:#ff6b6b;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:60px;margin:0 auto 20px;\\'>☕</div>'">
+            <img src="bsd-white.png" alt="BSD 로고" class="logo" onerror="this.outerHTML='<div style=\\'width:300px;height:300px;background:#ff6b6b;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:80px;margin:0 auto 20px;max-width:90%;\\'>☕</div>'">
             <h1>☕ 사다리 게임 ☕</h1>
             <p class="subtitle">커피 쏘기 당첨자를 뽑아보세요!</p>
         </div>
 
         <div class="game-setup">
-            <div class="input-section">
-                <h3 style="margin-bottom: 20px; color: #ff6b6b;">참가자 이름 입력 (최대 10명)</h3>
-                <div class="player-inputs" id="playerInputs">
-                    <div class="player-input">
-                        <label>1번:</label>
-                        <input type="text" id="player1" placeholder="이름을 입력하세요">
-                    </div>
-                    <div class="player-input">
-                        <label>2번:</label>
-                        <input type="text" id="player2" placeholder="이름을 입력하세요">
-                    </div>
+            <h3 style="margin-bottom: 20px; color: #ff6b6b;">참가자 이름 입력 (최대 10명)</h3>
+            <div class="player-inputs" id="playerInputs">
+                <div class="player-input">
+                    <label>1번:</label>
+                    <input type="text" id="player1" placeholder="이름을 입력하세요">
+                </div>
+                <div class="player-input">
+                    <label>2번:</label>
+                    <input type="text" id="player2" placeholder="이름을 입력하세요">
                 </div>
             </div>
             
             <div class="controls">
                 <button class="btn-secondary" onclick="addPlayer()">참가자 추가</button>
                 <button class="btn-secondary" onclick="removePlayer()">참가자 제거</button>
-                <button class="btn-primary" id="startGameBtn" onclick="startGame(); this.style.transform='scale(0.95)'; setTimeout(() => this.style.transform='scale(1)', 150);">🎮 게임 시작! 🎮</button>
+                <button class="btn-primary" onclick="startGame()">🎮 게임 시작! 🎮</button>
                 <button class="btn-secondary" onclick="resetGame()">다시하기</button>
             </div>
         </div>
 
-        <!-- Middle Manual Ad -->
+        <!-- Middle Ad -->
         <div class="ad-container">
             <ins class="adsbygoogle"
                  style="display:block; text-align:center;"
@@ -452,17 +264,18 @@
                  data-ad-format="fluid"
                  data-ad-client="ca-pub-6884566372095161"
                  data-ad-slot="7707926948"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
         </div>
 
-        <div class="game-board" id="gameBoard" style="display: none;">
-            <div class="ladder-container">
-                <div class="players-row" id="playersRow"></div>
-                <svg class="ladder-svg" id="ladderSvg" width="800" height="300"></svg>
-                <div class="results-row" id="resultsRow"></div>
+        <div class="game-board" id="gameBoard">
+            <div class="players-row" id="playersRow"></div>
+            <div style="text-align: center; margin: 30px 0;">
+                <div style="background: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 40px; border: 2px solid #555;">
+                    <h2 style="color: #ff6b6b;">🎲 사다리 타는 중... 🎲</h2>
+                    <p style="margin-top: 10px; color: #ccc;">잠시만 기다려주세요!</p>
+                </div>
             </div>
+            <div class="results-row" id="resultsRow"></div>
             <div style="text-align: center; margin-top: 20px;">
                 <button class="btn-primary" onclick="runLadder()">사다리 타기!</button>
             </div>
@@ -475,7 +288,7 @@
             <div style="font-size: 1.5rem;" id="coffeeMessage">커피를 쏘세요! 🎊</div>
         </div>
 
-        <!-- Bottom Manual Ad -->
+        <!-- Bottom Ad -->
         <div class="ad-container">
             <ins class="adsbygoogle"
                  style="display:block; text-align:center;"
@@ -483,9 +296,7 @@
                  data-ad-format="fluid"
                  data-ad-client="ca-pub-6884566372095161"
                  data-ad-slot="7707926948"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
         </div>
     </div>
 
@@ -498,7 +309,7 @@
         const coffeeMenus = {
             빽다방: [
                 "달달연유라떼",
-                "빽스치노",
+                "빽스치노", 
                 "초콜릿라떼",
                 "딸기라떼",
                 "녹차라떼",
@@ -537,25 +348,9 @@
         }
 
         function startGame() {
-            console.log('게임 시작 함수 호출됨');
-            
-            // 사용자 상호작용으로 음악 재생 활성화
-            if (musicEnabled) {
-                if (!bgMusic) {
-                    bgMusic = document.getElementById('bgMusic');
-                }
-                if (bgMusic) {
-                    bgMusic.currentTime = 0;
-                    bgMusic.volume = 0.3;
-                    const playPromise = bgMusic.play();
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => {
-                            console.log('✅ 음악 재생 성공');
-                        }).catch(e => {
-                            console.log('❌ 음악 재생 실패:', e);
-                        });
-                    }
-                }
+            // 음악 재생
+            if (musicEnabled && bgMusic) {
+                bgMusic.play().catch(e => console.log('음악 재생 실패'));
             }
             
             const players = [];
@@ -568,21 +363,20 @@
                 players.push(name);
             }
 
-            setupLadder(players);
+            setupGame(players);
             document.getElementById('gameBoard').style.display = 'block';
             document.getElementById('winnerAnnouncement').style.display = 'none';
             gameStarted = true;
-            
-            console.log('게임 설정 완료');
         }
 
-        function setupLadder(players) {
+        function setupGame(players) {
             const playersRow = document.getElementById('playersRow');
             const resultsRow = document.getElementById('resultsRow');
 
             playersRow.innerHTML = '';
             resultsRow.innerHTML = '';
 
+            // 플레이어 표시
             players.forEach(player => {
                 const playerDiv = document.createElement('div');
                 playerDiv.className = 'player-name';
@@ -590,10 +384,11 @@
                 playersRow.appendChild(playerDiv);
             });
 
-            // 당첨자 1명, 나머지는 통과
+            // 당첨자 1명 랜덤 선택
             const winnerIndex = Math.floor(Math.random() * players.length);
             const winnerMenu = coffeeMenus.빽다방[Math.floor(Math.random() * coffeeMenus.빽다방.length)];
             
+            // 결과 표시
             for (let i = 0; i < players.length; i++) {
                 const resultDiv = document.createElement('div');
                 resultDiv.className = 'result-item';
@@ -608,291 +403,45 @@
                 }
                 resultsRow.appendChild(resultDiv);
             }
-
-            drawLadder(players.length);
         }
 
-        // 사다리 구조 저장
-        let ladderStructure = [];
-        
-        function drawLadder(playerCount) {
-            const svg = document.getElementById('ladderSvg');
-            const width = 800;
-            const height = 300;
-            const stepWidth = width / (playerCount + 1);
-            const levels = 8;
-            const levelHeight = height / (levels + 1);
-
-            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-            svg.setAttribute('width', width);
-            svg.setAttribute('height', height);
-
-            // 기존 요소 제거
-            svg.innerHTML = '';
-            
-            // 사다리 구조 생성
-            ladderStructure = generateLadderStructure(playerCount, levels);
-
-            // 세로선 그리기
-            for (let i = 0; i < playerCount; i++) {
-                const x = stepWidth * (i + 1);
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', x);
-                line.setAttribute('y1', 20);
-                line.setAttribute('x2', x);
-                line.setAttribute('y2', height - 20);
-                line.setAttribute('class', 'ladder-line');
-                line.setAttribute('data-column', i);
-                line.style.stroke = '#666';
-                line.style.strokeWidth = '3';
-                svg.appendChild(line);
-            }
-
-            // 가로선 그리기
-            for (let level = 0; level < levels; level++) {
-                const y = levelHeight * (level + 1);
-                const connections = ladderStructure[level];
-                
-                connections.forEach(connection => {
-                    const x1 = stepWidth * (connection + 1);
-                    const x2 = stepWidth * (connection + 2);
-                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    line.setAttribute('x1', x1);
-                    line.setAttribute('y1', y);
-                    line.setAttribute('x2', x2);
-                    line.setAttribute('y2', y);
-                    line.setAttribute('class', 'ladder-horizontal');
-                    line.setAttribute('data-level', level);
-                    line.setAttribute('data-from', connection);
-                    line.setAttribute('data-to', connection + 1);
-                    line.style.stroke = '#888';
-                    line.style.strokeWidth = '2';
-                    svg.appendChild(line);
-                });
-            }
-            
-            console.log('Ladder drawn with', playerCount, 'players');
-        }
-
-        function generateLadderStructure(playerCount, levels) {
-            const structure = [];
-            for (let level = 0; level < levels; level++) {
-                const connections = [];
-                const used = new Set();
-                
-                for (let i = 0; i < playerCount - 1; i++) {
-                    if (!used.has(i) && !used.has(i + 1) && Math.random() > 0.5) {
-                        connections.push(i);
-                        used.add(i);
-                        used.add(i + 1);
-                    }
-                }
-                structure.push(connections);
-            }
-            return structure;
-        }
-
-        let currentPlayerIndex = 0;
-        let allResults = [];
-        
         function runLadder() {
             if (!gameStarted) return;
             
-            const svg = document.getElementById('ladderSvg');
-            const lines = svg.querySelectorAll('.ladder-line');
-            
-            lines.forEach(line => line.classList.remove('active'));
-            allResults = [];
-            currentPlayerIndex = 0;
-            
-            // 1번부터 순차적으로 진행
-            setTimeout(() => {
-                runNextPlayer();
-            }, 500);
-        }
-        
-        function runNextPlayer() {
-            if (currentPlayerIndex >= playerCount) {
-                // 모든 플레이어 완료 후 결과 처리
-                processAllResults();
-                return;
-            }
-            
             const players = [];
             for (let i = 1; i <= playerCount; i++) {
                 players.push(document.getElementById(`player${i}`).value.trim());
             }
             
-            // 현재 플레이어 표시
-            const playersRow = document.getElementById('playersRow');
-            const playerDivs = playersRow.children;
+            // 간단한 셔플 알고리즘으로 각 플레이어를 랜덤 위치에 배정
+            const playerPositions = Array.from({length: playerCount}, (_, i) => i);
             
-            // 모든 플레이어 스타일 초기화
-            for (let i = 0; i < playerDivs.length; i++) {
-                playerDivs[i].style.background = '#ff6b6b';
-                playerDivs[i].style.transform = 'scale(1)';
+            // Fisher-Yates 셔플
+            for (let i = playerPositions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [playerPositions[i], playerPositions[j]] = [playerPositions[j], playerPositions[i]];
             }
             
-            // 현재 플레이어 강조
-            if (playerDivs[currentPlayerIndex]) {
-                playerDivs[currentPlayerIndex].style.background = '#00ff00';
-                playerDivs[currentPlayerIndex].style.transform = 'scale(1.1)';
-            }
-            
-            setTimeout(() => {
-                tracePath(currentPlayerIndex);
-            }, 500);
-        }
-
-        function tracePath(startColumn) {
-            let currentColumn = startColumn;
-            const pathTrace = [currentColumn];
-            
-            // 각 레벨을 순서대로 통과하면서 경로 계산
-            for (let level = 0; level < ladderStructure.length; level++) {
-                const connections = ladderStructure[level];
-                
-                // 현재 위치에서 연결된 가로선이 있는지 확인
-                for (let connection of connections) {
-                    if (connection === currentColumn) {
-                        // 오른쪽으로 이동
-                        currentColumn = connection + 1;
-                        break;
-                    } else if (connection + 1 === currentColumn) {
-                        // 왼쪽으로 이동
-                        currentColumn = connection;
-                        break;
-                    }
-                }
-                pathTrace.push(currentColumn);
-            }
-
-            animatePath(pathTrace, startColumn);
-        }
-
-        function animatePath(pathTrace, startPlayer) {
-            const svg = document.getElementById('ladderSvg');
-            const lines = svg.querySelectorAll('.ladder-line');
-            const horizontals = svg.querySelectorAll('.ladder-horizontal');
-            
-            // 모든 요소 초기화
-            lines.forEach(line => line.classList.remove('active'));
-            horizontals.forEach(line => line.classList.remove('active'));
-            
-            // 기존 점 제거
-            const existingDots = svg.querySelectorAll('.moving-dot');
-            existingDots.forEach(dot => dot.remove());
-            
-            // 사다리 경로 계산
-            const width = 800;
-            const height = 300;
-            const stepWidth = width / (playerCount + 1);
-            const levels = 8;
-            const levelHeight = height / (levels + 1);
-            
-            let delay = 0;
-            let movingDot = null;
-            
-            pathTrace.forEach((column, index) => {
-                setTimeout(() => {
-                    // 현재 세로선 활성화
-                    lines.forEach(line => line.classList.remove('active'));
-                    const currentLine = svg.querySelector(`[data-column="${column}"]`);
-                    if (currentLine) {
-                        currentLine.classList.add('active');
-                    }
-                    
-                    // 움직이는 점 생성 및 위치 업데이트
-                    if (!movingDot) {
-                        movingDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                        movingDot.setAttribute('class', 'moving-dot moving-indicator');
-                        movingDot.setAttribute('r', '10');
-                        svg.appendChild(movingDot);
-                    }
-                    
-                    const currentX = stepWidth * (column + 1);
-                    const currentY = levelHeight * index + 20;
-                    
-                    movingDot.style.transition = 'all 0.5s ease-in-out';
-                    movingDot.setAttribute('cx', currentX);
-                    movingDot.setAttribute('cy', currentY);
-                    
-                    // 마지막 단계에서 결과 발표
-                    if (index === pathTrace.length - 1) {
-                        setTimeout(() => {
-                            // 점을 결과 위치로 이동
-                            const finalY = height - 20;
-                            movingDot.setAttribute('cy', finalY);
-                            setTimeout(() => {
-                                // 결과 저장
-                                allResults.push({
-                                    playerIndex: startPlayer,
-                                    resultIndex: column
-                                });
-                                
-                                // 다음 플레이어로 진행
-                                currentPlayerIndex++;
-                                setTimeout(() => {
-                                    runNextPlayer();
-                                }, 1000);
-                            }, 500);
-                        }, 800);
-                    }
-                }, delay);
-                delay += 800;
-            });
-        }
-        
-        function processAllResults() {
-            const players = [];
-            for (let i = 1; i <= playerCount; i++) {
-                players.push(document.getElementById(`player${i}`).value.trim());
-            }
-            
+            // 당첨자 찾기
             const resultsRow = document.getElementById('resultsRow');
             const resultItems = resultsRow.children;
-            
-            // 당첨 위치 찾기
-            let winnerPosition = -1;
-            let winnerMenu = '';
+            let actualWinner = null;
             
             for (let i = 0; i < resultItems.length; i++) {
                 if (resultItems[i].getAttribute('data-winner') === 'true') {
-                    winnerPosition = i;
-                    winnerMenu = resultItems[i].getAttribute('data-menu');
+                    const winnerPlayerIndex = playerPositions.indexOf(i);
+                    if (winnerPlayerIndex !== -1) {
+                        actualWinner = {
+                            name: players[winnerPlayerIndex],
+                            menu: resultItems[i].getAttribute('data-menu')
+                        };
+                        resultItems[i].style.animation = 'pulse 2s infinite';
+                    }
                     break;
                 }
             }
             
-            // 당첨 위치에 도착한 플레이어 찾기
-            let actualWinner = null;
-            if (winnerPosition !== -1) {
-                const winnerData = allResults.find(result => result.resultIndex === winnerPosition);
-                if (winnerData) {
-                    actualWinner = {
-                        name: players[winnerData.playerIndex],
-                        playerIndex: winnerData.playerIndex,
-                        menu: winnerMenu
-                    };
-                }
-            }
-            
-            // 결과 표시 업데이트 - 기존 텍스트 유지
-            for (let i = 0; i < resultItems.length; i++) {
-                if (i === winnerPosition && actualWinner) {
-                    // 당첨 위치는 그대로 유지하고 애니메이션 추가
-                    resultItems[i].style.animation = 'pulse 2s infinite';
-                    resultItems[i].style.opacity = '1';
-                } else {
-                    // 다른 위치는 기존 텍스트 유지하되 스타일만 변경
-                    resultItems[i].style.background = '#666';
-                    resultItems[i].style.opacity = '0.5';
-                    resultItems[i].removeAttribute('data-winner');
-                    resultItems[i].removeAttribute('data-menu');
-                }
-            }
-            
-            // 당첨자만 팝업 표시
+            // 당첨자 발표
             if (actualWinner) {
                 document.getElementById('winnerName').textContent = actualWinner.name;
                 document.getElementById('winnerAnnouncement').style.display = 'block';
@@ -915,59 +464,63 @@
             }
             
             for (let i = 1; i <= playerCount; i++) {
-                document.getElementById(`player${i}`).value = '';
+                const input = document.getElementById(`player${i}`);
+                if (input) input.value = '';
             }
         }
 
         function toggleMusic() {
-            const musicControl = document.getElementById('musicControl');
             const musicStatus = document.getElementById('musicStatus');
             
             musicEnabled = !musicEnabled;
             
             if (musicEnabled) {
                 musicStatus.textContent = '음악 ON';
-                musicControl.classList.remove('muted');
                 if (bgMusic && gameStarted) {
                     bgMusic.play().catch(e => console.log('음악 재생 실패'));
                 }
             } else {
                 musicStatus.textContent = '음악 OFF';
-                musicControl.classList.add('muted');
                 if (bgMusic) {
                     bgMusic.pause();
                 }
             }
         }
 
-        // 초기화
+        // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
             bgMusic = document.getElementById('bgMusic');
             if (bgMusic) {
                 bgMusic.volume = 0.3;
                 
-                // 즉시 음악 재생 시도
-                const playMusic = () => {
-                    if (musicEnabled && bgMusic) {
-                        bgMusic.play().then(() => {
-                            console.log('✅ 음악 재생 성공');
-                        }).catch(e => {
-                            console.log('❌ 자동재생 차단, 사용자 상호작용 대기 중');
-                        });
+                // 음소거 상태로 자동재생 시작 후 즉시 음소거 해제
+                setTimeout(() => {
+                    if (bgMusic && musicEnabled) {
+                        bgMusic.muted = false;
+                        console.log('음악 자동재생 시작');
                     }
-                };
+                }, 1000);
                 
-                // 페이지 로드 후 바로 재생 시도
-                setTimeout(playMusic, 500);
-                
-                // 사용자가 클릭하면 음악 재생
-                document.addEventListener('click', playMusic, { once: true });
-                document.addEventListener('touchstart', playMusic, { once: true });
-                
-                console.log('음악 파일 준비 완료');
+                // 사용자 상호작용 시에도 음악 재생 보장
+                document.addEventListener('click', function() {
+                    if (musicEnabled && bgMusic) {
+                        bgMusic.muted = false;
+                        bgMusic.play().catch(e => console.log('음악 재생 실패'));
+                    }
+                }, { once: true });
             }
-            console.log('페이지 로드 완료');
         });
+
+        // CSS 애니메이션 추가
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.1); opacity: 0.8; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
