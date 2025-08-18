@@ -342,11 +342,10 @@
     <!-- Sidebar Auto Ads -->
     <div class="sidebar-ad left">
         <ins class="adsbygoogle"
-             style="display:block"
+             style="display:block;width:160px;height:600px;"
              data-ad-client="ca-pub-6884566372095161"
              data-ad-slot="auto"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
+             data-ad-format="vertical"></ins>
         <script>
              (adsbygoogle = window.adsbygoogle || []).push({});
         </script>
@@ -354,11 +353,10 @@
     
     <div class="sidebar-ad right">
         <ins class="adsbygoogle"
-             style="display:block"
+             style="display:block;width:160px;height:600px;"
              data-ad-client="ca-pub-6884566372095161"
              data-ad-slot="auto"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
+             data-ad-format="vertical"></ins>
         <script>
              (adsbygoogle = window.adsbygoogle || []).push({});
         </script>
@@ -393,7 +391,7 @@
         </div>
 
         <div class="header">
-            <img src="bsd-white.png" alt="로고" class="logo" onerror="console.log('Logo failed'); this.outerHTML='<div style=\\'width:120px;height:120px;background:#ff6b6b;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:40px;margin:0 auto 20px;\\'>☕</div>'">
+            <div style="width:120px;height:120px;background:#ff6b6b;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:40px;margin:0 auto 20px;">☕</div>
             <h1>☕ 사다리 게임 ☕</h1>
             <p class="subtitle">커피 쏘기 당첨자를 뽑아보세요!</p>
         </div>
@@ -518,12 +516,18 @@
             playerCount--;
         }
 
+        let gameStarting = false;
+        
         function startGame() {
+            if (gameStarting) return; // 중복 클릭 방지
+            gameStarting = true;
+            
             const players = [];
             for (let i = 1; i <= playerCount; i++) {
                 const name = document.getElementById(`player${i}`).value.trim();
                 if (!name) {
                     alert(`${i}번 참가자의 이름을 입력해주세요.`);
+                    gameStarting = false;
                     return;
                 }
                 players.push(name);
@@ -534,14 +538,25 @@
             document.getElementById('winnerAnnouncement').style.display = 'none';
             gameStarted = true;
             
-            // 게임 시작 시 음악 재생 - 사용자 상호작용으로 간주
+            // 게임 시작 시 음악 재생 - 사용자 상호작용에 의한 재생
+            if (musicEnabled && bgMusic) {
+                bgMusic.play().then(() => {
+                    console.log('Music started successfully');
+                }).catch(e => {
+                    console.log('Music blocked, will try after interaction:', e);
+                    // 사용자가 어떤 버튼을 누를 때 재생 시도
+                    document.addEventListener('click', function tryPlay() {
+                        if (musicEnabled && bgMusic) {
+                            bgMusic.play().catch(e => console.log('Still blocked'));
+                        }
+                        document.removeEventListener('click', tryPlay);
+                    }, { once: true });
+                });
+            }
+            
             setTimeout(() => {
-                if (musicEnabled && bgMusic) {
-                    bgMusic.play().catch(e => {
-                        console.log('Music play blocked, trying on next click:', e);
-                    });
-                }
-            }, 100);
+                gameStarting = false;
+            }, 1000);
         }
 
         function setupLadder(players) {
@@ -626,6 +641,9 @@
             return connections;
         }
 
+        let currentPlayerIndex = 0;
+        let allResults = [];
+        
         function runLadder() {
             if (!gameStarted) return;
 
@@ -634,10 +652,45 @@
             const horizontals = svg.querySelectorAll('.ladder-horizontal');
             
             lines.forEach(line => line.classList.remove('active'));
+            allResults = [];
+            currentPlayerIndex = 0;
+            
+            // 1번부터 순차적으로 진행
+            setTimeout(() => {
+                runNextPlayer();
+            }, 500);
+        }
+        
+        function runNextPlayer() {
+            if (currentPlayerIndex >= playerCount) {
+                // 모든 플레이어 완료 후 결과 처리
+                processAllResults();
+                return;
+            }
+            
+            const players = [];
+            for (let i = 1; i <= playerCount; i++) {
+                players.push(document.getElementById(`player${i}`).value.trim());
+            }
+            
+            // 현재 플레이어 표시
+            const playersRow = document.getElementById('playersRow');
+            const playerDivs = playersRow.children;
+            
+            // 모든 플레이어 스타일 초기화
+            for (let i = 0; i < playerDivs.length; i++) {
+                playerDivs[i].style.background = '#ff6b6b';
+                playerDivs[i].style.transform = 'scale(1)';
+            }
+            
+            // 현재 플레이어 강조
+            if (playerDivs[currentPlayerIndex]) {
+                playerDivs[currentPlayerIndex].style.background = '#00ff00';
+                playerDivs[currentPlayerIndex].style.transform = 'scale(1.1)';
+            }
             
             setTimeout(() => {
-                const randomPlayer = Math.floor(Math.random() * playerCount);
-                tracePath(randomPlayer);
+                tracePath(currentPlayerIndex);
             }, 500);
         }
 
@@ -752,13 +805,89 @@
                             const finalY = height - 20;
                             movingDot.setAttribute('cy', finalY);
                             setTimeout(() => {
-                                announceWinner(startPlayer, column);
+                                // 결과 저장
+                                allResults.push({
+                                    playerIndex: startPlayer,
+                                    resultIndex: column
+                                });
+                                
+                                // 다음 플레이어로 진행
+                                currentPlayerIndex++;
+                                setTimeout(() => {
+                                    runNextPlayer();
+                                }, 1000);
                             }, 500);
                         }, 800);
                     }
                 }, delay);
                 delay += 800;
             });
+        }
+        
+        function processAllResults() {
+            const players = [];
+            for (let i = 1; i <= playerCount; i++) {
+                players.push(document.getElementById(`player${i}`).value.trim());
+            }
+            
+            const resultsRow = document.getElementById('resultsRow');
+            const resultItems = resultsRow.children;
+            
+            // 당첨자 찾기 - 랜덤하게 한 명만 당첨
+            const winnerResultIndex = Math.floor(Math.random() * playerCount);
+            let actualWinner = null;
+            
+            // 결과 표시
+            for (let i = 0; i < resultItems.length; i++) {
+                if (i === winnerResultIndex) {
+                    resultItems[i].textContent = '🎉 당첨 🎉';
+                    resultItems[i].style.background = '#ff6b6b';
+                    resultItems[i].style.animation = 'pulse 2s infinite';
+                    
+                    // 이 위치에 도착한 플레이어 찾기
+                    const winnerData = allResults.find(result => result.resultIndex === i);
+                    if (winnerData) {
+                        actualWinner = {
+                            name: players[winnerData.playerIndex],
+                            playerIndex: winnerData.playerIndex
+                        };
+                    }
+                } else {
+                    resultItems[i].textContent = '통과';
+                    resultItems[i].style.background = '#666';
+                    resultItems[i].style.opacity = '0.5';
+                }
+            }
+            
+            // 당첨자 처리
+            if (actualWinner) {
+                const randomMenu = coffeeMenus.빽다방[Math.floor(Math.random() * coffeeMenus.빽다방.length)];
+                
+                document.getElementById('winnerName').textContent = actualWinner.name;
+                document.getElementById('winnerAnnouncement').style.display = 'block';
+                
+                setTimeout(() => {
+                    alert(`🎉 당첨자: ${actualWinner.name}님!\n\n빽다방 ${randomMenu}을(를) 쏘셔야 해요! ☕`);
+                    document.getElementById('coffeeMessage').innerHTML = `<strong>빽다방 ${randomMenu}</strong>을(를) 쏘세요! ☕`;
+                }, 500);
+                
+                setTimeout(() => {
+                    document.getElementById('winnerAnnouncement').scrollIntoView({ 
+                        behavior: 'smooth' 
+                    });
+                }, 100);
+            }
+            
+            // 비당첨자들에게 축하 메시지
+            setTimeout(() => {
+                for (let i = 0; i < players.length; i++) {
+                    if (!actualWinner || i !== actualWinner.playerIndex) {
+                        setTimeout(() => {
+                            alert(`🎉 축하합니다 ${players[i]}님!\n\n돈을 아끼셨네요! 💰`);
+                        }, i * 1000); // 간격을 두고 팝업 표시
+                    }
+                }
+            }, 1000);
         }
 
         function announceWinner(startPlayer, endColumn) {
@@ -807,6 +936,9 @@
             document.getElementById('gameBoard').style.display = 'none';
             document.getElementById('winnerAnnouncement').style.display = 'none';
             gameStarted = false;
+            gameStarting = false;
+            currentPlayerIndex = 0;
+            allResults = [];
             
             // 음악 정지
             if (bgMusic) {
