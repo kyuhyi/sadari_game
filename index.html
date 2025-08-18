@@ -416,7 +416,7 @@
         </div>
 
         <div class="header">
-            <img src="bsd-white.png" alt="BSD 로고" class="logo" onerror="this.style.display='none'">
+            <img src="bsd-white.png" alt="BSD 로고" class="logo" onerror="this.outerHTML='<div class=\\'logo\\' style=\\'width:200px;height:200px;background:#ff6b6b;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:60px;margin:0 auto 20px;\\'>☕</div>'">
             <h1>☕ 사다리 게임 ☕</h1>
             <p class="subtitle">커피 쏘기 당첨자를 뽑아보세요!</p>
         </div>
@@ -612,6 +612,9 @@
             drawLadder(players.length);
         }
 
+        // 사다리 구조 저장
+        let ladderStructure = [];
+        
         function drawLadder(playerCount) {
             const svg = document.getElementById('ladderSvg');
             const width = 800;
@@ -626,7 +629,11 @@
 
             // 기존 요소 제거
             svg.innerHTML = '';
+            
+            // 사다리 구조 생성
+            ladderStructure = generateLadderStructure(playerCount, levels);
 
+            // 세로선 그리기
             for (let i = 0; i < playerCount; i++) {
                 const x = stepWidth * (i + 1);
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -641,9 +648,10 @@
                 svg.appendChild(line);
             }
 
-            for (let level = 1; level <= levels; level++) {
-                const y = levelHeight * level;
-                const connections = generateConnections(playerCount);
+            // 가로선 그리기
+            for (let level = 0; level < levels; level++) {
+                const y = levelHeight * (level + 1);
+                const connections = ladderStructure[level];
                 
                 connections.forEach(connection => {
                     const x1 = stepWidth * (connection + 1);
@@ -666,14 +674,22 @@
             console.log('Ladder drawn with', playerCount, 'players');
         }
 
-        function generateConnections(playerCount) {
-            const connections = [];
-            for (let i = 0; i < playerCount - 1; i++) {
-                if (Math.random() > 0.4) {
-                    connections.push(i);
+        function generateLadderStructure(playerCount, levels) {
+            const structure = [];
+            for (let level = 0; level < levels; level++) {
+                const connections = [];
+                const used = new Set();
+                
+                for (let i = 0; i < playerCount - 1; i++) {
+                    if (!used.has(i) && !used.has(i + 1) && Math.random() > 0.5) {
+                        connections.push(i);
+                        used.add(i);
+                        used.add(i + 1);
+                    }
                 }
+                structure.push(connections);
             }
-            return connections;
+            return structure;
         }
 
         let currentPlayerIndex = 0;
@@ -729,32 +745,25 @@
         }
 
         function tracePath(startColumn) {
-            const svg = document.getElementById('ladderSvg');
-            const horizontals = svg.querySelectorAll('.ladder-horizontal');
-            const levels = 8;
             let currentColumn = startColumn;
+            const pathTrace = [currentColumn];
             
-            const pathTrace = [];
-            pathTrace.push(currentColumn);
-
-            for (let level = 1; level <= levels; level++) {
-                const levelHorizontals = Array.from(horizontals).filter(h => 
-                    parseInt(h.getAttribute('data-level')) === level
-                );
+            // 각 레벨을 순서대로 통과하면서 경로 계산
+            for (let level = 0; level < ladderStructure.length; level++) {
+                const connections = ladderStructure[level];
                 
-                const leftConnection = levelHorizontals.find(h => 
-                    parseInt(h.getAttribute('data-to')) === currentColumn
-                );
-                const rightConnection = levelHorizontals.find(h => 
-                    parseInt(h.getAttribute('data-from')) === currentColumn
-                );
-
-                if (leftConnection) {
-                    currentColumn = parseInt(leftConnection.getAttribute('data-from'));
-                } else if (rightConnection) {
-                    currentColumn = parseInt(rightConnection.getAttribute('data-to'));
+                // 현재 위치에서 연결된 가로선이 있는지 확인
+                for (let connection of connections) {
+                    if (connection === currentColumn) {
+                        // 오른쪽으로 이동
+                        currentColumn = connection + 1;
+                        break;
+                    } else if (connection + 1 === currentColumn) {
+                        // 왼쪽으로 이동
+                        currentColumn = connection;
+                        break;
+                    }
                 }
-                
                 pathTrace.push(currentColumn);
             }
 
@@ -932,20 +941,30 @@
         }
 
         // 초기화
-        window.addEventListener('load', function() {
+        document.addEventListener('DOMContentLoaded', function() {
             bgMusic = document.getElementById('bgMusic');
             if (bgMusic) {
                 bgMusic.volume = 0.3;
-                console.log('음악 파일 준비 완료 - autoplay 속성으로 자동 재생');
                 
-                // 혹시 autoplay가 차단된 경우 사용자 클릭 시 재생
-                bgMusic.addEventListener('error', function() {
-                    document.addEventListener('click', function() {
-                        if (musicEnabled) {
-                            bgMusic.play().catch(e => console.log('클릭 후에도 음악 재생 실패:', e));
-                        }
-                    }, { once: true });
-                });
+                // 즉시 음악 재생 시도
+                const playMusic = () => {
+                    if (musicEnabled && bgMusic) {
+                        bgMusic.play().then(() => {
+                            console.log('✅ 음악 재생 성공');
+                        }).catch(e => {
+                            console.log('❌ 자동재생 차단, 사용자 상호작용 대기 중');
+                        });
+                    }
+                };
+                
+                // 페이지 로드 후 바로 재생 시도
+                setTimeout(playMusic, 500);
+                
+                // 사용자가 클릭하면 음악 재생
+                document.addEventListener('click', playMusic, { once: true });
+                document.addEventListener('touchstart', playMusic, { once: true });
+                
+                console.log('음악 파일 준비 완료');
             }
             console.log('페이지 로드 완료');
         });
