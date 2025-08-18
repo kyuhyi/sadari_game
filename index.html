@@ -106,14 +106,22 @@
         .logo {
             width: 120px;
             height: 120px;
-            background: #ff6b6b;
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 40px;
+            font-size: 50px;
             margin: 0 auto 20px;
+            box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            animation: logoGlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes logoGlow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         h1 {
@@ -394,7 +402,7 @@
             <div class="controls">
                 <button class="btn-secondary" onclick="addPlayer()">참가자 추가</button>
                 <button class="btn-secondary" onclick="removePlayer()">참가자 제거</button>
-                <button class="btn-primary" onclick="startGame()">게임 시작!</button>
+                <button class="btn-primary" id="startGameBtn" onclick="startGame(); this.style.transform='scale(0.95)'; setTimeout(() => this.style.transform='scale(1)', 150);">🎮 게임 시작! 🎮</button>
                 <button class="btn-secondary" onclick="resetGame()">다시하기</button>
             </div>
         </div>
@@ -494,14 +502,23 @@
         function startGame() {
             console.log('게임 시작 함수 호출됨');
             
-            // 음악 재생 시도
-            if (musicEnabled && bgMusic) {
-                bgMusic.currentTime = 0;
-                bgMusic.play().then(() => {
-                    console.log('✅ 음악 재생 성공');
-                }).catch(e => {
-                    console.log('❌ 음악 재생 실패:', e);
-                });
+            // 사용자 상호작용으로 음악 재생 활성화
+            if (musicEnabled) {
+                if (!bgMusic) {
+                    bgMusic = document.getElementById('bgMusic');
+                }
+                if (bgMusic) {
+                    bgMusic.currentTime = 0;
+                    bgMusic.volume = 0.3;
+                    const playPromise = bgMusic.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            console.log('✅ 음악 재생 성공');
+                        }).catch(e => {
+                            console.log('❌ 음악 재생 실패:', e);
+                        });
+                    }
+                }
             }
             
             const players = [];
