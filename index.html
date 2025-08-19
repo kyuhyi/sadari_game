@@ -288,7 +288,7 @@
     </div>
     
     <!-- Background Music -->
-    <audio id="bgMusic" loop preload="auto" muted>
+    <audio id="bgMusic" loop preload="metadata">
         <source src="bsd.mp3" type="audio/mpeg">
         브라우저가 오디오를 지원하지 않습니다.
     </audio>
@@ -383,6 +383,7 @@
         let canvas, ctx;
         let ladderStructure = [];
         let animationRunning = false;
+        let gameResult = null; // 게임 결과 저장
         
         const coffeeMenus = {
             빽다방: [
@@ -429,11 +430,8 @@
         }
 
         function startGame() {
-            // 음악 재생
-            if (musicEnabled && bgMusic) {
-                bgMusic.muted = false;
-                bgMusic.play().catch(e => console.log('음악 재생 실패'));
-            }
+            // 음악 재생 시도
+            tryPlayMusic();
             
             const players = [];
             for (let i = 1; i <= playerCount; i++) {
@@ -475,10 +473,14 @@
                 // 태블릿
                 canvas.width = Math.min(containerWidth, 500);
                 canvas.height = 350;
-            } else {
+            } else if (window.innerWidth <= 1200) {
                 // 데스크탑
-                canvas.width = Math.min(containerWidth, 900);
-                canvas.height = 500;
+                canvas.width = Math.min(containerWidth, 800);
+                canvas.height = 600;
+            } else {
+                // 큰 데스크탑
+                canvas.width = Math.min(containerWidth, 1000);
+                canvas.height = 700;
             }
         }
         
@@ -568,9 +570,15 @@
                 });
             }
             
-            // 하단 결과 그리기
-            const winnerIndex = Math.floor(Math.random() * players.length);
-            const winnerMenu = coffeeMenus.빽다방[Math.floor(Math.random() * coffeeMenus.빽다방.length)];
+            // 하단 결과 그리기 (게임 결과가 없으면 새로 생성)
+            if (!gameResult) {
+                gameResult = {
+                    winnerIndex: Math.floor(Math.random() * players.length),
+                    winnerMenu: coffeeMenus.빽다방[Math.floor(Math.random() * coffeeMenus.빽다방.length)]
+                };
+            }
+            const winnerIndex = gameResult.winnerIndex;
+            const winnerMenu = gameResult.winnerMenu;
             
             for (let i = 0; i < players.length; i++) {
                 const x = playerWidth * (i + 1);
@@ -772,12 +780,9 @@
             document.getElementById('ladderBtn').disabled = false;
             document.getElementById('ladderBtn').textContent = '🎮 사다리 타기! 🎮';
             
-            // 게임 완료 후 캔버스를 깔끔하게 다시 그리기 (숫자 원 없이)
-            setupLadderCanvas(players);
-            
-            // 최종 결과 확인
-            const winnerIndex = parseInt(canvas.getAttribute('data-winner-index'));
-            const winnerMenu = canvas.getAttribute('data-winner-menu');
+            // 최종 결과 확인 (기존에 저장된 결과 사용)
+            const winnerIndex = gameResult.winnerIndex;
+            const winnerMenu = gameResult.winnerMenu;
             
             // 실제 당첨자 찾기 (어느 플레이어가 당첨 위치에 도달했는지)
             let actualWinner = null;
@@ -805,6 +810,8 @@
         
         function resetLadder() {
             if (gameStarted) {
+                // 게임 결과 초기화
+                gameResult = null;
                 const players = [];
                 for (let i = 1; i <= playerCount; i++) {
                     players.push(document.getElementById(`player${i}`).value.trim());
@@ -876,9 +883,7 @@
             document.getElementById('gameBoard').style.display = 'none';
             document.getElementById('winnerAnnouncement').style.display = 'none';
             gameStarted = false;
-            
-            // 진행 상황 초기화
-            updateProgress('🎮 게임 준비 완료! 🎮', '사다리 타기 버튼을 눌러주세요!');
+            gameResult = null; // 게임 결과 초기화
             
             if (bgMusic) {
                 bgMusic.pause();
@@ -893,30 +898,26 @@
 
         let musicStarted = false;
         
-        function initMusic() {
+        function tryPlayMusic() {
             if (bgMusic && musicEnabled && !musicStarted) {
                 bgMusic.volume = 0.4;
                 bgMusic.currentTime = 0;
-                bgMusic.muted = false;
                 
-                // 더 적극적인 음악 재생 시도
-                const playPromise = bgMusic.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        console.log('✅ 음악 재생 성공!');
-                        musicStarted = true;
-                        document.getElementById('musicStatus').textContent = '음악 ON';
-                        const musicControl = document.querySelector('.music-control');
-                        musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
-                    }).catch(error => {
-                        console.log('❌ 음악 재생 실패:', error);
-                        // 더 눈에 띄는 음악 재생 버튼
-                        const musicControl = document.querySelector('.music-control');
-                        musicControl.style.background = 'rgba(255, 107, 107, 0.9)';
-                        musicControl.style.animation = 'pulse 2s infinite';
-                        musicControl.innerHTML = '🎵 <span>♪ 음악 재생하기 ♪</span>';
-                    });
-                }
+                bgMusic.play().then(() => {
+                    console.log('✅ 음악 재생 성공!');
+                    musicStarted = true;
+                    document.getElementById('musicStatus').textContent = '음악 ON';
+                    const musicControl = document.querySelector('.music-control');
+                    musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
+                    musicControl.style.animation = '';
+                }).catch(error => {
+                    console.log('❌ 음악 재생 실패:', error);
+                    // 사용자 클릭 유도
+                    const musicControl = document.querySelector('.music-control');
+                    musicControl.style.background = 'rgba(255, 107, 107, 0.9)';
+                    musicControl.style.animation = 'pulse 2s infinite';
+                    document.getElementById('musicStatus').textContent = '클릭해서 음악 재생';
+                });
             }
         }
         
@@ -926,38 +927,34 @@
             
             if (!bgMusic) {
                 bgMusic = document.getElementById('bgMusic');
-                if (bgMusic) {
-                    bgMusic.volume = 0.4;
-                    bgMusic.muted = false;
-                }
+                if (bgMusic) bgMusic.volume = 0.4;
             }
             
             if (!musicStarted || bgMusic.paused) {
                 // 음악 시작/재생
                 musicEnabled = true;
                 if (bgMusic) {
-                    bgMusic.muted = false;
                     bgMusic.currentTime = 0;
                     bgMusic.play().then(() => {
-                        console.log('✅ 토글로 음악 재생 성공');
+                        console.log('✅ 클릭으로 음악 재생 성공');
                         musicStarted = true;
                         musicStatus.textContent = '음악 ON';
                         musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
                         musicControl.style.animation = '';
-                        musicControl.innerHTML = '🎵 <span id="musicStatus">음악 ON</span>';
                     }).catch(e => {
-                        console.log('❌ 토글 음악 재생 실패:', e);
-                        alert('음악을 재생하려면 페이지와 상호작용이 필요합니다. 버튼을 다시 클릭해주세요.');
+                        console.log('❌ 클릭 음악 재생 실패:', e);
+                        musicStatus.textContent = '음악 재생 실패';
+                        musicControl.style.background = 'rgba(200, 50, 50, 0.9)';
                     });
                 }
             } else {
                 // 음악 일시정지/재개
                 musicEnabled = !musicEnabled;
                 if (musicEnabled) {
-                    bgMusic.muted = false;
                     bgMusic.play().then(() => {
                         musicStatus.textContent = '음악 ON';
                         musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
+                        musicControl.style.animation = '';
                     });
                 } else {
                     bgMusic.pause();
@@ -979,58 +976,6 @@
             }
         });
 
-        // 즉시 음악 시작을 위한 함수
-        function forceStartMusic() {
-            if (bgMusic && !musicStarted) {
-                bgMusic.volume = 0.4;
-                bgMusic.muted = false;
-                bgMusic.autoplay = true;
-                
-                // 여러 방법으로 재생 시도
-                const playAttempts = [
-                    () => {
-                        bgMusic.muted = false;
-                        return bgMusic.play();
-                    },
-                    () => {
-                        bgMusic.currentTime = 0;
-                        bgMusic.muted = false;
-                        return bgMusic.play();
-                    },
-                    () => {
-                        bgMusic.load();
-                        bgMusic.muted = false;
-                        return bgMusic.play();
-                    }
-                ];
-                
-                function tryPlay(index = 0) {
-                    if (index >= playAttempts.length) return;
-                    
-                    const attempt = playAttempts[index];
-                    const promise = attempt();
-                    
-                    if (promise !== undefined) {
-                        promise.then(() => {
-                            console.log('✅ 음악 재생 성공! (시도 ' + (index + 1) + ')');
-                            musicStarted = true;
-                            const musicControl = document.querySelector('.music-control');
-                            if (musicControl) {
-                                musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
-                                musicControl.style.animation = '';
-                                musicControl.innerHTML = '🎵 <span id="musicStatus">음악 ON</span>';
-                            }
-                        }).catch(() => {
-                            setTimeout(() => tryPlay(index + 1), 100);
-                        });
-                    } else {
-                        setTimeout(() => tryPlay(index + 1), 100);
-                    }
-                }
-                
-                tryPlay();
-            }
-        }
 
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
@@ -1038,73 +983,17 @@
             
             if (bgMusic) {
                 bgMusic.volume = 0.4;
-                bgMusic.autoplay = true;
-                bgMusic.muted = true; // 처음에는 muted로 시작
-                
-                // 페이지 로드 즉시 muted 상태로 재생 시도 (자동재생 정책 우회)
-                bgMusic.play().then(() => {
-                    console.log('🎵 muted 상태로 음악 시작 (사용자 클릭 시 unmute됩니다)');
-                }).catch(e => {
-                    console.log('❌ muted 재생도 실패:', e);
-                });
-                
-                // 오디오 로드 완료 시 즉시 재생
-                bgMusic.addEventListener('canplaythrough', function() {
-                    console.log('🎵 오디오 파일 로드 완료');
-                    if (bgMusic.paused) {
-                        bgMusic.play().catch(e => console.log('재생 실패:', e));
-                    }
-                });
-                
-                bgMusic.addEventListener('loadeddata', function() {
-                    if (bgMusic.paused) {
-                        bgMusic.play().catch(e => console.log('재생 실패:', e));
-                    }
-                });
                 
                 bgMusic.addEventListener('error', function(e) {
                     console.log('❌ 오디오 로드 실패:', e);
                 });
                 
-                // 모든 사용자 상호작용에서 음악 unmute 및 재생
-                const events = ['click', 'touchstart', 'keydown', 'mouseover', 'scroll', 'mousemove', 'touchmove', 'mouseenter', 'focus'];
-                events.forEach(event => {
-                    document.addEventListener(event, function() {
-                        if (bgMusic && bgMusic.muted && musicEnabled) {
-                            bgMusic.muted = false;
-                            if (bgMusic.paused) {
-                                bgMusic.play().then(() => {
-                                    console.log('✅ 사용자 상호작용으로 음악 시작!');
-                                    musicStarted = true;
-                                    const musicControl = document.querySelector('.music-control');
-                                    const musicStatus = document.getElementById('musicStatus');
-                                    if (musicControl) {
-                                        musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
-                                        musicControl.style.animation = '';
-                                    }
-                                    if (musicStatus) {
-                                        musicStatus.textContent = '음악 ON';
-                                    }
-                                }).catch(e => console.log('재생 실패:', e));
-                            }
-                        }
-                    }, { passive: true, once: true });
-                });
-                
-                // 페이지 포커스/visibility 변경 시에도 재시도
-                window.addEventListener('focus', function() {
-                    if (bgMusic && musicEnabled && bgMusic.paused) {
-                        bgMusic.play().catch(e => console.log('focus 재생 실패:', e));
+                // 간단한 사용자 상호작용 감지
+                document.addEventListener('click', function() {
+                    if (!musicStarted && musicEnabled) {
+                        tryPlayMusic();
                     }
-                });
-                
-                document.addEventListener('visibilitychange', function() {
-                    if (!document.hidden && bgMusic && musicEnabled && bgMusic.paused) {
-                        setTimeout(() => {
-                            bgMusic.play().catch(e => console.log('visibility 재생 실패:', e));
-                        }, 100);
-                    }
-                });
+                }, { once: true });
             }
         });
 
