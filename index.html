@@ -277,7 +277,7 @@
         </div>
 
         <div class="header">
-            <div style="width:300px;height:200px;background:linear-gradient(135deg, #ff6b6b, #ff5252);border-radius:20px;display:flex;align-items:center;justify-content:center;color:white;font-size:24px;font-weight:bold;margin:0 auto 20px;max-width:90%;box-shadow:0 8px 32px rgba(255,107,107,0.3);border:3px solid rgba(255,255,255,0.2);">BSD 사다리 게임</div>
+            <img src="bsd-white.png" alt="BSD 로고" class="logo" style="width:300px;height:auto;max-width:90%;margin:0 auto 20px;display:block;">
             <h1>☕ 사다리 게임 ☕</h1>
             <p class="subtitle">커피 쏘기 당첨자를 뽑아보세요!</p>
         </div>
@@ -316,10 +316,10 @@
 
         <div class="game-board" id="gameBoard">
             <div class="players-row" id="playersRow"></div>
-            <div style="text-align: center; margin: 30px 0;">
+            <div style="text-align: center; margin: 30px 0;" id="gameProgress">
                 <div style="background: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 40px; border: 2px solid #555;">
-                    <h2 style="color: #ff6b6b;">🎲 사다리 타는 중... 🎲</h2>
-                    <p style="margin-top: 10px; color: #ccc;">잠시만 기다려주세요!</p>
+                    <h2 style="color: #ff6b6b;" id="progressTitle">🎮 게임 준비 완료! 🎮</h2>
+                    <p style="margin-top: 10px; color: #ccc;" id="progressMessage">사다리 타기 버튼을 눌러주세요!</p>
                 </div>
             </div>
             <div class="results-row" id="resultsRow"></div>
@@ -452,58 +452,76 @@
             }
         }
 
+        function updateProgress(title, message) {
+            document.getElementById('progressTitle').textContent = title;
+            document.getElementById('progressMessage').textContent = message;
+        }
+
         function runLadder() {
             if (!gameStarted) return;
+            
+            // 진행 상황 표시
+            updateProgress('🎲 사다리 타는 중... 🎲', '결과를 계산하고 있습니다!');
             
             const players = [];
             for (let i = 1; i <= playerCount; i++) {
                 players.push(document.getElementById(`player${i}`).value.trim());
             }
             
-            // 간단한 셔플 알고리즘으로 각 플레이어를 랜덤 위치에 배정
-            const playerPositions = Array.from({length: playerCount}, (_, i) => i);
-            
-            // Fisher-Yates 셔플
-            for (let i = playerPositions.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [playerPositions[i], playerPositions[j]] = [playerPositions[j], playerPositions[i]];
-            }
-            
-            // 당첨자 찾기
-            const resultsRow = document.getElementById('resultsRow');
-            const resultItems = resultsRow.children;
-            let actualWinner = null;
-            
-            for (let i = 0; i < resultItems.length; i++) {
-                if (resultItems[i].getAttribute('data-winner') === 'true') {
-                    const winnerPlayerIndex = playerPositions.indexOf(i);
-                    if (winnerPlayerIndex !== -1) {
-                        actualWinner = {
-                            name: players[winnerPlayerIndex],
-                            menu: resultItems[i].getAttribute('data-menu')
-                        };
-                        resultItems[i].style.animation = 'pulse 2s infinite';
-                    }
-                    break;
-                }
-            }
-            
-            // 당첨자 발표
-            if (actualWinner) {
-                document.getElementById('winnerName').textContent = actualWinner.name;
-                document.getElementById('winnerAnnouncement').style.display = 'block';
+            // 1초 후 결과 표시 (사다리 타는 느낌)
+            setTimeout(() => {
+                updateProgress('⚡ 결과 나왔어요! ⚡', '당첨자를 확인해주세요!');
                 
-                setTimeout(() => {
-                    alert(`🎉 당첨자: ${actualWinner.name}님!\n\n빽다방 ${actualWinner.menu}을(를) 쏘셔야 해요! ☕`);
-                    document.getElementById('coffeeMessage').innerHTML = `<strong>빽다방 ${actualWinner.menu}</strong>을(를) 쏘세요! ☕`;
-                }, 500);
-            }
+                // 간단한 셔플 알고리즘으로 각 플레이어를 랜덤 위치에 배정
+                const playerPositions = Array.from({length: playerCount}, (_, i) => i);
+                
+                // Fisher-Yates 셔플
+                for (let i = playerPositions.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [playerPositions[i], playerPositions[j]] = [playerPositions[j], playerPositions[i]];
+                }
+                
+                // 당첨자 찾기
+                const resultsRow = document.getElementById('resultsRow');
+                const resultItems = resultsRow.children;
+                let actualWinner = null;
+                
+                for (let i = 0; i < resultItems.length; i++) {
+                    if (resultItems[i].getAttribute('data-winner') === 'true') {
+                        const winnerPlayerIndex = playerPositions.indexOf(i);
+                        if (winnerPlayerIndex !== -1) {
+                            actualWinner = {
+                                name: players[winnerPlayerIndex],
+                                menu: resultItems[i].getAttribute('data-menu')
+                            };
+                            resultItems[i].style.animation = 'pulse 2s infinite';
+                        }
+                        break;
+                    }
+                }
+                
+                // 당첨자 발표
+                if (actualWinner) {
+                    updateProgress('🎉 당첨자 확정! 🎉', `${actualWinner.name}님이 당첨되었습니다!`);
+                    
+                    document.getElementById('winnerName').textContent = actualWinner.name;
+                    document.getElementById('winnerAnnouncement').style.display = 'block';
+                    
+                    setTimeout(() => {
+                        alert(`🎉 당첨자: ${actualWinner.name}님!\n\n빽다방 ${actualWinner.menu}을(를) 쏘셔야 해요! ☕`);
+                        document.getElementById('coffeeMessage').innerHTML = `<strong>빽다방 ${actualWinner.menu}</strong>을(를) 쏘세요! ☕`;
+                    }, 500);
+                }
+            }, 1500);
         }
 
         function resetGame() {
             document.getElementById('gameBoard').style.display = 'none';
             document.getElementById('winnerAnnouncement').style.display = 'none';
             gameStarted = false;
+            
+            // 진행 상황 초기화
+            updateProgress('🎮 게임 준비 완료! 🎮', '사다리 타기 버튼을 눌러주세요!');
             
             if (bgMusic) {
                 bgMusic.pause();
