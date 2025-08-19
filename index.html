@@ -63,7 +63,7 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(45, 45, 45, 0.9);
+            background: rgba(255, 107, 107, 0.9);
             border: 2px solid #ff6b6b;
             border-radius: 50px;
             padding: 10px 20px;
@@ -71,6 +71,14 @@
             color: white;
             font-weight: bold;
             z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        .music-control:hover {
+            background: rgba(255, 107, 107, 1);
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
         }
 
         .header {
@@ -276,11 +284,11 @@
 
     <!-- Music Control -->
     <div class="music-control" onclick="toggleMusic()">
-        🎵 <span id="musicStatus">음악 ON</span>
+        🎵 <span id="musicStatus">음악 시작하기</span>
     </div>
     
     <!-- Background Music -->
-    <audio id="bgMusic" loop preload="auto">
+    <audio id="bgMusic" loop preload="auto" muted>
         <source src="bsd.mp3" type="audio/mpeg">
         브라우저가 오디오를 지원하지 않습니다.
     </audio>
@@ -423,6 +431,7 @@
         function startGame() {
             // 음악 재생
             if (musicEnabled && bgMusic) {
+                bgMusic.muted = false;
                 bgMusic.play().catch(e => console.log('음악 재생 실패'));
             }
             
@@ -888,6 +897,7 @@
             if (bgMusic && musicEnabled && !musicStarted) {
                 bgMusic.volume = 0.4;
                 bgMusic.currentTime = 0;
+                bgMusic.muted = false;
                 
                 // 더 적극적인 음악 재생 시도
                 const playPromise = bgMusic.play();
@@ -896,12 +906,12 @@
                         console.log('✅ 음악 재생 성공!');
                         musicStarted = true;
                         document.getElementById('musicStatus').textContent = '음악 ON';
-                        const musicControl = document.getElementById('musicControl');
+                        const musicControl = document.querySelector('.music-control');
                         musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
                     }).catch(error => {
                         console.log('❌ 음악 재생 실패:', error);
                         // 더 눈에 띄는 음악 재생 버튼
-                        const musicControl = document.getElementById('musicControl');
+                        const musicControl = document.querySelector('.music-control');
                         musicControl.style.background = 'rgba(255, 107, 107, 0.9)';
                         musicControl.style.animation = 'pulse 2s infinite';
                         musicControl.innerHTML = '🎵 <span>♪ 음악 재생하기 ♪</span>';
@@ -912,23 +922,28 @@
         
         function toggleMusic() {
             const musicStatus = document.getElementById('musicStatus');
-            const musicControl = document.getElementById('musicControl');
+            const musicControl = document.querySelector('.music-control');
             
             if (!bgMusic) {
                 bgMusic = document.getElementById('bgMusic');
-                if (bgMusic) bgMusic.volume = 0.4;
+                if (bgMusic) {
+                    bgMusic.volume = 0.4;
+                    bgMusic.muted = false;
+                }
             }
             
             if (!musicStarted || bgMusic.paused) {
                 // 음악 시작/재생
                 musicEnabled = true;
                 if (bgMusic) {
+                    bgMusic.muted = false;
                     bgMusic.currentTime = 0;
                     bgMusic.play().then(() => {
                         console.log('✅ 토글로 음악 재생 성공');
                         musicStarted = true;
                         musicStatus.textContent = '음악 ON';
                         musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
+                        musicControl.style.animation = '';
                         musicControl.innerHTML = '🎵 <span id="musicStatus">음악 ON</span>';
                     }).catch(e => {
                         console.log('❌ 토글 음악 재생 실패:', e);
@@ -939,6 +954,7 @@
                 // 음악 일시정지/재개
                 musicEnabled = !musicEnabled;
                 if (musicEnabled) {
+                    bgMusic.muted = false;
                     bgMusic.play().then(() => {
                         musicStatus.textContent = '음악 ON';
                         musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
@@ -972,13 +988,18 @@
                 
                 // 여러 방법으로 재생 시도
                 const playAttempts = [
-                    () => bgMusic.play(),
+                    () => {
+                        bgMusic.muted = false;
+                        return bgMusic.play();
+                    },
                     () => {
                         bgMusic.currentTime = 0;
+                        bgMusic.muted = false;
                         return bgMusic.play();
                     },
                     () => {
                         bgMusic.load();
+                        bgMusic.muted = false;
                         return bgMusic.play();
                     }
                 ];
@@ -993,7 +1014,7 @@
                         promise.then(() => {
                             console.log('✅ 음악 재생 성공! (시도 ' + (index + 1) + ')');
                             musicStarted = true;
-                            const musicControl = document.getElementById('musicControl');
+                            const musicControl = document.querySelector('.music-control');
                             if (musicControl) {
                                 musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
                                 musicControl.style.animation = '';
@@ -1018,37 +1039,70 @@
             if (bgMusic) {
                 bgMusic.volume = 0.4;
                 bgMusic.autoplay = true;
+                bgMusic.muted = true; // 처음에는 muted로 시작
+                
+                // 페이지 로드 즉시 muted 상태로 재생 시도 (자동재생 정책 우회)
+                bgMusic.play().then(() => {
+                    console.log('🎵 muted 상태로 음악 시작 (사용자 클릭 시 unmute됩니다)');
+                }).catch(e => {
+                    console.log('❌ muted 재생도 실패:', e);
+                });
                 
                 // 오디오 로드 완료 시 즉시 재생
                 bgMusic.addEventListener('canplaythrough', function() {
                     console.log('🎵 오디오 파일 로드 완료');
-                    forceStartMusic();
+                    if (bgMusic.paused) {
+                        bgMusic.play().catch(e => console.log('재생 실패:', e));
+                    }
                 });
                 
                 bgMusic.addEventListener('loadeddata', function() {
-                    forceStartMusic();
+                    if (bgMusic.paused) {
+                        bgMusic.play().catch(e => console.log('재생 실패:', e));
+                    }
                 });
                 
                 bgMusic.addEventListener('error', function(e) {
                     console.log('❌ 오디오 로드 실패:', e);
                 });
                 
-                // 즉시 음악 재생 시도
-                setTimeout(forceStartMusic, 100);
-                setTimeout(forceStartMusic, 500);
-                setTimeout(forceStartMusic, 1000);
-                
-                // 모든 사용자 상호작용에서 음악 시작
+                // 모든 사용자 상호작용에서 음악 unmute 및 재생
                 const events = ['click', 'touchstart', 'keydown', 'mouseover', 'scroll', 'mousemove', 'touchmove', 'mouseenter', 'focus'];
                 events.forEach(event => {
-                    document.addEventListener(event, forceStartMusic, { passive: true });
+                    document.addEventListener(event, function() {
+                        if (bgMusic && bgMusic.muted && musicEnabled) {
+                            bgMusic.muted = false;
+                            if (bgMusic.paused) {
+                                bgMusic.play().then(() => {
+                                    console.log('✅ 사용자 상호작용으로 음악 시작!');
+                                    musicStarted = true;
+                                    const musicControl = document.querySelector('.music-control');
+                                    const musicStatus = document.getElementById('musicStatus');
+                                    if (musicControl) {
+                                        musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
+                                        musicControl.style.animation = '';
+                                    }
+                                    if (musicStatus) {
+                                        musicStatus.textContent = '음악 ON';
+                                    }
+                                }).catch(e => console.log('재생 실패:', e));
+                            }
+                        }
+                    }, { passive: true, once: true });
                 });
                 
                 // 페이지 포커스/visibility 변경 시에도 재시도
-                window.addEventListener('focus', forceStartMusic);
+                window.addEventListener('focus', function() {
+                    if (bgMusic && musicEnabled && bgMusic.paused) {
+                        bgMusic.play().catch(e => console.log('focus 재생 실패:', e));
+                    }
+                });
+                
                 document.addEventListener('visibilitychange', function() {
-                    if (!document.hidden) {
-                        setTimeout(forceStartMusic, 100);
+                    if (!document.hidden && bgMusic && musicEnabled && bgMusic.paused) {
+                        setTimeout(() => {
+                            bgMusic.play().catch(e => console.log('visibility 재생 실패:', e));
+                        }, 100);
                     }
                 });
             }
