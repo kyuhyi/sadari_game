@@ -223,10 +223,36 @@
         }
 
         @media (max-width: 768px) {
-            h1 { font-size: 2rem; }
+            body { padding: 10px; }
+            h1 { font-size: 1.8rem; }
             .player-inputs { grid-template-columns: 1fr; }
             .controls { flex-direction: column; align-items: center; }
-            button { width: 100%; max-width: 300px; }
+            button { width: 100%; max-width: 300px; font-size: 14px; padding: 10px 20px; }
+            .game-setup, .game-board { padding: 20px; }
+            .logo { width: 250px; }
+            .music-control { top: 10px; right: 10px; padding: 8px 16px; font-size: 14px; }
+            
+            /* 캔버스 모바일 최적화 */
+            #ladderCanvas {
+                width: 100% !important;
+                height: auto !important;
+                max-width: 100%;
+                border-radius: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 { font-size: 1.5rem; }
+            .subtitle { font-size: 1rem; }
+            .player-input label { min-width: 40px; font-size: 14px; }
+            .player-input input { font-size: 12px; padding: 8px; }
+            .logo { width: 200px; }
+            .game-setup, .game-board { padding: 15px; }
+            
+            /* 매우 작은 화면용 캔버스 */
+            #ladderCanvas {
+                border-radius: 8px;
+            }
         }
     </style>
 </head>
@@ -254,8 +280,9 @@
     </div>
     
     <!-- Background Music -->
-    <audio id="bgMusic" loop preload="auto" autoplay muted>
+    <audio id="bgMusic" loop preload="auto">
         <source src="bsd.mp3" type="audio/mpeg">
+        브라우저가 오디오를 지원하지 않습니다.
     </audio>
 
     <div class="container">
@@ -313,7 +340,7 @@
 
         <div class="game-board" id="gameBoard">
             <div style="text-align: center; margin: 20px 0;">
-                <canvas id="ladderCanvas" width="900" height="500" style="background: #f5f5f0; border-radius: 15px; border: 3px solid #ddd; max-width: 100%;"></canvas>
+                <canvas id="ladderCanvas" style="background: #f5f5f0; border-radius: 15px; border: 3px solid #ddd; max-width: 100%;"></canvas>
             </div>
             <div style="text-align: center; margin: 20px 0;">
                 <button class="btn-primary" onclick="runLadderAnimation()" id="ladderBtn">🎮 사다리 타기! 🎮</button>
@@ -419,8 +446,31 @@
             canvas = document.getElementById('ladderCanvas');
             ctx = canvas.getContext('2d');
             
+            // 모바일 최적화된 캔버스 크기 설정
+            setCanvasSize();
+            
             // 캔버스 초기화
             setupLadderCanvas(players);
+        }
+        
+        function setCanvasSize() {
+            const container = document.querySelector('.game-board');
+            const containerWidth = container.offsetWidth - 60; // 패딩 고려
+            
+            // 화면 크기에 따른 캔버스 크기 설정
+            if (window.innerWidth <= 480) {
+                // 매우 작은 화면 (모바일)
+                canvas.width = Math.min(containerWidth, 350);
+                canvas.height = 300;
+            } else if (window.innerWidth <= 768) {
+                // 태블릿
+                canvas.width = Math.min(containerWidth, 500);
+                canvas.height = 350;
+            } else {
+                // 데스크탑
+                canvas.width = Math.min(containerWidth, 900);
+                canvas.height = 500;
+            }
         }
         
         function setupLadderCanvas(players) {
@@ -462,20 +512,26 @@
                 ctx.lineWidth = 3;
                 ctx.strokeRect(x - 60, y - 25, 120, 50);
                 
+                // 화면 크기에 따른 폰트 크기 조정
+                const emojiSize = canvas.width < 400 ? '18px' : '24px';
+                const numberSize = canvas.width < 400 ? 'bold 12px' : 'bold 16px';
+                const nameSize = canvas.width < 400 ? 'bold 10px' : 'bold 14px';
+                
                 // 동물 이모지
-                ctx.font = '24px Arial';
+                ctx.font = emojiSize + ' Arial';
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#fff';
                 ctx.fillText(animals[i % animals.length], x - 30, y + 5);
                 
                 // 숫자
-                ctx.font = 'bold 16px Arial';
+                ctx.font = numberSize + ' Arial';
                 ctx.fillText((i + 1), x + 20, y + 5);
                 
                 // 플레이어 이름
-                ctx.font = 'bold 14px Arial';
+                ctx.font = nameSize + ' Arial';
                 ctx.fillStyle = '#333';
-                ctx.fillText(players[i].length > 6 ? players[i].substring(0,6) + '...' : players[i], x, y + 30);
+                const maxNameLength = canvas.width < 400 ? 4 : 6;
+                ctx.fillText(players[i].length > maxNameLength ? players[i].substring(0,maxNameLength) + '...' : players[i], x, y + 30);
             }
             
             // 세로선 그리기
@@ -513,36 +569,62 @@
             
             for (let i = 0; i < players.length; i++) {
                 const x = playerWidth * (i + 1);
-                const y = canvasHeight - 60;
+                const y = canvasHeight - 70; // 더 위로 위치 변경
                 
                 if (i === winnerIndex) {
+                    // 당첨 박스 - 더 두꺼운 테두리와 그림자 효과
                     ctx.fillStyle = '#FF6B6B';
                     ctx.fillRect(x - 60, y - 25, 120, 50);
-                    ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 4;
                     ctx.strokeRect(x - 60, y - 25, 120, 50);
                     
-                    ctx.font = '12px Arial';
+                    // 내부 흰색 테두리
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x - 58, y - 23, 116, 46);
+                    
+                    const winTextSize = canvas.width < 400 ? 'bold 14px' : 'bold 18px';
+                    const menuTextSize = canvas.width < 400 ? 'bold 10px' : 'bold 14px';
+                    const maxMenuLength = canvas.width < 400 ? 6 : 8;
+                    
+                    ctx.font = winTextSize + ' Arial';
                     ctx.textAlign = 'center';
+                    ctx.fillStyle = '#000';
+                    ctx.fillText('당첨!', x, y - 2);
                     ctx.fillStyle = '#fff';
-                    ctx.fillText('당첨!', x, y - 5);
-                    ctx.font = '10px Arial';
-                    ctx.fillText(winnerMenu.length > 8 ? winnerMenu.substring(0,8) + '...' : winnerMenu, x, y + 10);
+                    ctx.fillText('당첨!', x - 1, y - 3);
+                    
+                    ctx.font = menuTextSize + ' Arial';
+                    ctx.fillStyle = '#000';
+                    ctx.fillText(winnerMenu.length > maxMenuLength ? winnerMenu.substring(0,maxMenuLength) + '...' : winnerMenu, x, y + 15);
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText(winnerMenu.length > maxMenuLength ? winnerMenu.substring(0,maxMenuLength) + '...' : winnerMenu, x - 1, y + 14);
                     
                     // 당첨 정보 저장
                     canvas.setAttribute('data-winner-index', winnerIndex);
                     canvas.setAttribute('data-winner-menu', winnerMenu);
                 } else {
+                    // 통과 박스
                     ctx.fillStyle = colors[i % colors.length];
                     ctx.fillRect(x - 60, y - 25, 120, 50);
-                    ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 4;
                     ctx.strokeRect(x - 60, y - 25, 120, 50);
                     
-                    ctx.font = '14px Arial';
+                    // 내부 흰색 테두리
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x - 58, y - 23, 116, 46);
+                    
+                    const passTextSize = canvas.width < 400 ? 'bold 16px' : 'bold 20px';
+                    
+                    ctx.font = passTextSize + ' Arial';
                     ctx.textAlign = 'center';
+                    ctx.fillStyle = '#000';
+                    ctx.fillText('통과', x, y + 7);
                     ctx.fillStyle = '#fff';
-                    ctx.fillText('통과', x, y + 5);
+                    ctx.fillText('통과', x - 1, y + 6);
                 }
             }
         }
@@ -618,65 +700,62 @@
             // 캔버스 다시 그리기 (기본 사다리)
             setupLadderCanvas(players);
             
-            // 모든 플레이어의 경로를 색깔별로 표시
-            for (let playerIndex = 0; playerIndex < paths.length; playerIndex++) {
-                const path = paths[playerIndex];
-                const color = colors[playerIndex % colors.length];
-                
-                // 경로 선 그리기
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 8;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.globalAlpha = 0.8;
-                ctx.beginPath();
-                
-                for (let i = 0; i < path.length; i++) {
-                    const pos = path[i];
-                    const posX = playerWidth * (pos.x + 1);
-                    let posY;
-                    
-                    if (pos.type === 'start') {
-                        posY = 90;
-                    } else if (pos.type === 'end') {
-                        posY = canvasHeight - 130;
-                    } else {
-                        posY = 90 + levelHeight * pos.y;
-                    }
-                    
-                    if (i === 0) {
-                        ctx.moveTo(posX, posY);
-                    } else {
-                        ctx.lineTo(posX, posY);
-                    }
-                }
-                
-                ctx.stroke();
-                
-                // 최종 도착점에 플레이어 번호 표시
-                const finalPos = path[path.length - 1];
-                const finalX = playerWidth * (finalPos.x + 1);
-                const finalY = canvasHeight - 60;
-                
-                ctx.globalAlpha = 1.0;
-                ctx.fillStyle = color;
-                ctx.strokeStyle = '#FFFFFF';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(finalX, finalY, 20, 0, 2 * Math.PI);
-                ctx.fill();
-                ctx.stroke();
-                
-                ctx.fillStyle = '#FFFFFF';
-                ctx.font = 'bold 16px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(playerIndex + 1, finalX, finalY + 6);
+            // 순차적으로 각 플레이어의 경로 표시
+            showPlayerPathSequentially(paths, players, 0, playerWidth, levelHeight, canvasHeight);
+        }
+        
+        function showPlayerPathSequentially(paths, players, currentPlayerIndex, playerWidth, levelHeight, canvasHeight) {
+            if (currentPlayerIndex >= paths.length) {
+                // 모든 플레이어 경로 표시 완료, 2초 후 결과 발표
+                setTimeout(() => {
+                    completeAnimation(paths, players);
+                }, 1500);
+                return;
             }
             
-            // 2초 후 결과 발표
+            const path = paths[currentPlayerIndex];
+            const color = colors[currentPlayerIndex % colors.length];
+            const playerName = players[currentPlayerIndex];
+            
+            // 현재 플레이어 정보 표시
+            document.getElementById('ladderBtn').textContent = `${currentPlayerIndex + 1}번 ${playerName} 결과 확인 중...`;
+            
+            // 경로 선 그리기
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.globalAlpha = 0.9;
+            ctx.beginPath();
+            
+            for (let i = 0; i < path.length; i++) {
+                const pos = path[i];
+                const posX = playerWidth * (pos.x + 1);
+                let posY;
+                
+                if (pos.type === 'start') {
+                    posY = 90;
+                } else if (pos.type === 'end') {
+                    posY = canvasHeight - 140;
+                } else {
+                    posY = 90 + levelHeight * pos.y;
+                }
+                
+                if (i === 0) {
+                    ctx.moveTo(posX, posY);
+                } else {
+                    ctx.lineTo(posX, posY);
+                }
+            }
+            
+            ctx.stroke();
+            
+            // 최종 도착점 표시 (숫자 원 제거)
+            
+            // 1.2초 후 다음 플레이어 경로 표시
             setTimeout(() => {
-                completeAnimation(paths, players);
-            }, 2000);
+                showPlayerPathSequentially(paths, players, currentPlayerIndex + 1, playerWidth, levelHeight, canvasHeight);
+            }, 1200);
         }
         
         
@@ -684,6 +763,9 @@
             animationRunning = false;
             document.getElementById('ladderBtn').disabled = false;
             document.getElementById('ladderBtn').textContent = '🎮 사다리 타기! 🎮';
+            
+            // 게임 완료 후 캔버스를 깔끔하게 다시 그리기 (숫자 원 없이)
+            setupLadderCanvas(players);
             
             // 최종 결과 확인
             const winnerIndex = parseInt(canvas.getAttribute('data-winner-index'));
@@ -801,66 +883,111 @@
             }
         }
 
+        let musicStarted = false;
+        
+        function initMusic() {
+            if (bgMusic && musicEnabled && !musicStarted) {
+                bgMusic.volume = 0.4;
+                bgMusic.currentTime = 0;
+                
+                const playPromise = bgMusic.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log('✅ 음악 재생 성공!');
+                        musicStarted = true;
+                        document.getElementById('musicStatus').textContent = '음악 ON';
+                    }).catch(error => {
+                        console.log('❌ 음악 재생 실패:', error);
+                        // 사용자 상호작용 필요 메시지
+                        const musicControl = document.getElementById('musicControl');
+                        musicControl.style.background = 'rgba(255, 107, 107, 0.9)';
+                        musicControl.innerHTML = '🎵 <span>클릭하여 음악 재생</span>';
+                    });
+                }
+            }
+        }
+        
         function toggleMusic() {
             const musicStatus = document.getElementById('musicStatus');
+            const musicControl = document.getElementById('musicControl');
             
-            musicEnabled = !musicEnabled;
+            if (!bgMusic) {
+                bgMusic = document.getElementById('bgMusic');
+                if (bgMusic) bgMusic.volume = 0.4;
+            }
             
-            if (musicEnabled) {
-                musicStatus.textContent = '음악 ON';
+            if (!musicStarted || bgMusic.paused) {
+                // 음악 시작/재생
+                musicEnabled = true;
                 if (bgMusic) {
-                    bgMusic.muted = false;
-                    bgMusic.volume = 0.5;
+                    bgMusic.currentTime = 0;
                     bgMusic.play().then(() => {
-                        console.log('✅ 음악 토글로 재생 성공');
+                        console.log('✅ 토글로 음악 재생 성공');
+                        musicStarted = true;
+                        musicStatus.textContent = '음악 ON';
+                        musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
+                        musicControl.innerHTML = '🎵 <span id="musicStatus">음악 ON</span>';
                     }).catch(e => {
-                        console.log('❌ 음악 토글 재생 실패:', e);
+                        console.log('❌ 토글 음악 재생 실패:', e);
+                        alert('음악을 재생하려면 페이지와 상호작용이 필요합니다. 버튼을 다시 클릭해주세요.');
                     });
                 }
             } else {
-                musicStatus.textContent = '음악 OFF';
-                if (bgMusic) {
+                // 음악 일시정지/재개
+                musicEnabled = !musicEnabled;
+                if (musicEnabled) {
+                    bgMusic.play().then(() => {
+                        musicStatus.textContent = '음악 ON';
+                        musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
+                    });
+                } else {
                     bgMusic.pause();
+                    musicStatus.textContent = '음악 OFF';
+                    musicControl.style.background = 'rgba(100, 100, 100, 0.9)';
                 }
             }
         }
 
+        // 윈도우 크기 변경 시 캔버스 재조정
+        window.addEventListener('resize', function() {
+            if (gameStarted && canvas) {
+                const players = [];
+                for (let i = 1; i <= playerCount; i++) {
+                    players.push(document.getElementById(`player${i}`).value.trim());
+                }
+                setCanvasSize();
+                setupLadderCanvas(players);
+            }
+        });
+
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
             bgMusic = document.getElementById('bgMusic');
+            
             if (bgMusic) {
-                bgMusic.volume = 0.5; // 볼륨 증가
+                bgMusic.volume = 0.4;
                 
-                // 즉시 음소거 해제하여 음악 재생
-                bgMusic.muted = false;
+                // 오디오 로드 완료 시
+                bgMusic.addEventListener('loadeddata', function() {
+                    console.log('🎵 오디오 파일 로드 완료');
+                });
                 
-                // 다양한 시점에서 음악 재생 시도
-                setTimeout(() => {
-                    if (bgMusic && musicEnabled) {
-                        bgMusic.play().then(() => {
-                            console.log('✅ 자동 음악 재생 성공');
-                        }).catch(e => {
-                            console.log('❌ 자동재생 차단, 사용자 클릭 필요');
-                        });
-                    }
-                }, 500);
+                bgMusic.addEventListener('error', function(e) {
+                    console.log('❌ 오디오 로드 실패:', e);
+                });
                 
-                // 사용자 상호작용 즉시 음악 재생
-                const startMusic = () => {
-                    if (musicEnabled && bgMusic) {
-                        bgMusic.muted = false;
-                        bgMusic.volume = 0.5;
-                        bgMusic.play().then(() => {
-                            console.log('✅ 사용자 클릭으로 음악 재생 성공');
-                        }).catch(e => {
-                            console.log('❌ 음악 재생 실패:', e);
-                        });
-                    }
-                };
+                // 즉시 음악 재생 시도
+                setTimeout(initMusic, 1000);
                 
-                document.addEventListener('click', startMusic, { once: true });
-                document.addEventListener('touchstart', startMusic, { once: true });
-                document.addEventListener('keydown', startMusic, { once: true });
+                // 사용자 상호작용 시 음악 시작
+                const events = ['click', 'touchstart', 'keydown', 'mouseover'];
+                events.forEach(event => {
+                    document.addEventListener(event, function() {
+                        if (!musicStarted) {
+                            initMusic();
+                        }
+                    }, { once: true });
+                });
             }
         });
 
