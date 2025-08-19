@@ -598,48 +598,136 @@
             const playerWidth = canvasWidth / (players.length + 1);
             const levelHeight = (canvasHeight - 200) / (ladderStructure.length + 1);
             
-            let animationStep = 0;
-            const maxSteps = ladderStructure.length + 1;
+            let currentPlayer = 0;
             
-            function drawAnimationStep() {
-                // 캔버스 다시 그리기
-                setupLadderCanvas(players);
+            function animateOnePlayer() {
+                if (currentPlayer >= players.length) {
+                    // 모든 플레이어 애니메이션 완료
+                    completeAnimation(paths, players);
+                    return;
+                }
                 
-                // 각 플레이어의 현재 위치 표시
-                for (let i = 0; i < paths.length; i++) {
-                    if (animationStep < paths[i].length) {
-                        const currentPos = paths[i][animationStep];
-                        const x = playerWidth * (currentPos.x + 1);
-                        const y = 90 + levelHeight * currentPos.y;
+                const path = paths[currentPlayer];
+                let stepIndex = 0;
+                
+                function drawPlayerStep() {
+                    // 캔버스 다시 그리기
+                    setupLadderCanvas(players);
+                    
+                    // 현재 플레이어 강조 표시
+                    highlightCurrentPlayer(currentPlayer, players);
+                    
+                    // 이전 플레이어들의 최종 위치 표시
+                    for (let i = 0; i < currentPlayer; i++) {
+                        const finalPath = paths[i];
+                        const finalPos = finalPath[finalPath.length - 1];
+                        const finalX = playerWidth * (finalPos.x + 1);
+                        const finalY = canvasHeight - 60;
                         
-                        // 움직이는 점 그리기
+                        // 완료된 플레이어 표시 (작은 점)
+                        ctx.fillStyle = colors[i % colors.length];
+                        ctx.strokeStyle = '#FFFFFF';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(finalX, finalY, 10, 0, 2 * Math.PI);
+                        ctx.fill();
+                        ctx.stroke();
+                        
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.font = 'bold 10px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(i + 1, finalX, finalY + 3);
+                    }
+                    
+                    // 현재 플레이어의 경로 따라 이동
+                    if (stepIndex < path.length) {
+                        const currentPos = path[stepIndex];
+                        const x = playerWidth * (currentPos.x + 1);
+                        let y;
+                        
+                        if (stepIndex === 0) {
+                            y = 90; // 시작 위치
+                        } else if (stepIndex === path.length - 1) {
+                            y = canvasHeight - 130; // 끝 위치 직전
+                        } else {
+                            y = 90 + levelHeight * stepIndex;
+                        }
+                        
+                        // 현재 움직이는 플레이어 표시 (큰 점)
                         ctx.fillStyle = '#FF0000';
                         ctx.strokeStyle = '#FFFFFF';
-                        ctx.lineWidth = 3;
+                        ctx.lineWidth = 4;
                         ctx.beginPath();
-                        ctx.arc(x, y, 15, 0, 2 * Math.PI);
+                        ctx.arc(x, y, 18, 0, 2 * Math.PI);
                         ctx.fill();
                         ctx.stroke();
                         
                         // 플레이어 번호
                         ctx.fillStyle = '#FFFFFF';
-                        ctx.font = 'bold 12px Arial';
+                        ctx.font = 'bold 14px Arial';
                         ctx.textAlign = 'center';
-                        ctx.fillText(i + 1, x, y + 4);
+                        ctx.fillText(currentPlayer + 1, x, y + 5);
+                        
+                        // 경로 선 그리기 (지금까지 온 경로)
+                        if (stepIndex > 0) {
+                            ctx.strokeStyle = colors[currentPlayer % colors.length];
+                            ctx.lineWidth = 5;
+                            ctx.beginPath();
+                            
+                            for (let i = 0; i < stepIndex; i++) {
+                                const pos = path[i];
+                                const posX = playerWidth * (pos.x + 1);
+                                let posY;
+                                
+                                if (i === 0) {
+                                    posY = 90;
+                                } else {
+                                    posY = 90 + levelHeight * i;
+                                }
+                                
+                                if (i === 0) {
+                                    ctx.moveTo(posX, posY);
+                                } else {
+                                    ctx.lineTo(posX, posY);
+                                }
+                            }
+                            
+                            // 현재 위치까지
+                            ctx.lineTo(x, y);
+                            ctx.stroke();
+                        }
+                        
+                        stepIndex++;
+                        setTimeout(drawPlayerStep, 600);
+                    } else {
+                        // 현재 플레이어 애니메이션 완료, 다음 플레이어로
+                        currentPlayer++;
+                        setTimeout(animateOnePlayer, 1000);
                     }
                 }
                 
-                animationStep++;
-                
-                if (animationStep <= maxSteps) {
-                    setTimeout(drawAnimationStep, 800);
-                } else {
-                    // 애니메이션 완료
-                    completeAnimation(paths, players);
-                }
+                drawPlayerStep();
             }
             
-            drawAnimationStep();
+            animateOnePlayer();
+        }
+        
+        function highlightCurrentPlayer(playerIndex, players) {
+            const canvasWidth = canvas.width;
+            const playerWidth = canvasWidth / (players.length + 1);
+            const x = playerWidth * (playerIndex + 1);
+            const y = 60;
+            
+            // 현재 플레이어 상단 바 강조
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 5;
+            ctx.strokeRect(x - 62, y - 27, 124, 54);
+            
+            // 현재 플레이어 텍스트 추가
+            ctx.fillStyle = '#FFD700';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${playerIndex + 1}번 차례`, x, y + 50);
         }
         
         function completeAnimation(paths, players) {
