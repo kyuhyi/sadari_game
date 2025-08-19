@@ -288,7 +288,8 @@
     </div>
     
     <!-- Background Music -->
-    <audio id="bgMusic" loop preload="metadata">
+    <audio id="bgMusic" loop preload="auto" controls style="display: none;">
+        <source src="./bsd.mp3" type="audio/mpeg">
         <source src="bsd.mp3" type="audio/mpeg">
         브라우저가 오디오를 지원하지 않습니다.
     </audio>
@@ -913,53 +914,97 @@
         let musicStarted = false;
         
         function tryPlayMusic() {
-            if (bgMusic && musicEnabled && !musicStarted) {
+            console.log('🎵 음악 재생 시도...');
+            
+            if (!bgMusic) {
+                bgMusic = document.getElementById('bgMusic');
+                console.log('🎵 bgMusic 요소:', bgMusic);
+            }
+            
+            if (bgMusic && musicEnabled) {
                 bgMusic.volume = 0.4;
                 bgMusic.currentTime = 0;
                 
-                bgMusic.play().then(() => {
-                    console.log('✅ 음악 재생 성공!');
-                    musicStarted = true;
-                    document.getElementById('musicStatus').textContent = '음악 ON';
-                    const musicControl = document.querySelector('.music-control');
-                    musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
-                    musicControl.style.animation = '';
-                }).catch(error => {
-                    console.log('❌ 음악 재생 실패:', error);
-                    // 사용자 클릭 유도
-                    const musicControl = document.querySelector('.music-control');
-                    musicControl.style.background = 'rgba(255, 107, 107, 0.9)';
-                    musicControl.style.animation = 'pulse 2s infinite';
-                    document.getElementById('musicStatus').textContent = '클릭해서 음악 재생';
+                // 로드 상태 확인
+                console.log('🎵 음악 파일 상태:', {
+                    readyState: bgMusic.readyState,
+                    networkState: bgMusic.networkState,
+                    src: bgMusic.src,
+                    duration: bgMusic.duration
                 });
+                
+                const playPromise = bgMusic.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log('✅ 음악 재생 성공!');
+                        musicStarted = true;
+                        document.getElementById('musicStatus').textContent = '음악 ON';
+                        const musicControl = document.querySelector('.music-control');
+                        musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
+                        musicControl.style.animation = '';
+                    }).catch(error => {
+                        console.log('❌ 음악 재생 실패:', error);
+                        // 사용자에게 직접 재생 요청
+                        const musicControl = document.querySelector('.music-control');
+                        musicControl.style.background = 'rgba(255, 107, 107, 0.9)';
+                        musicControl.style.animation = 'pulse 2s infinite';
+                        document.getElementById('musicStatus').textContent = '클릭해서 음악 재생';
+                        
+                        // 오디오 다시 로드
+                        bgMusic.load();
+                    });
+                }
+            } else {
+                console.log('❌ bgMusic 또는 musicEnabled 없음:', { bgMusic, musicEnabled });
             }
         }
         
         function toggleMusic() {
+            console.log('🎵 음악 토글 클릭');
             const musicStatus = document.getElementById('musicStatus');
             const musicControl = document.querySelector('.music-control');
             
             if (!bgMusic) {
                 bgMusic = document.getElementById('bgMusic');
-                if (bgMusic) bgMusic.volume = 0.4;
+                if (bgMusic) {
+                    bgMusic.volume = 0.4;
+                    console.log('🎵 bgMusic 초기화됨');
+                }
             }
             
-            if (!musicStarted || bgMusic.paused) {
+            if (!musicStarted || (bgMusic && bgMusic.paused)) {
                 // 음악 시작/재생
                 musicEnabled = true;
+                console.log('🎵 음악 재생 시도 중...');
+                
                 if (bgMusic) {
-                    bgMusic.currentTime = 0;
-                    bgMusic.play().then(() => {
-                        console.log('✅ 클릭으로 음악 재생 성공');
-                        musicStarted = true;
-                        musicStatus.textContent = '음악 ON';
-                        musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
-                        musicControl.style.animation = '';
-                    }).catch(e => {
-                        console.log('❌ 클릭 음악 재생 실패:', e);
-                        musicStatus.textContent = '음악 재생 실패';
-                        musicControl.style.background = 'rgba(200, 50, 50, 0.9)';
-                    });
+                    // 강제로 오디오 리로드
+                    bgMusic.load();
+                    
+                    // 오디오가 로드되면 재생
+                    bgMusic.addEventListener('canplaythrough', function playWhenReady() {
+                        console.log('🎵 오디오 로드 완료, 재생 시작');
+                        bgMusic.currentTime = 0;
+                        
+                        const playAttempt = bgMusic.play();
+                        if (playAttempt !== undefined) {
+                            playAttempt.then(() => {
+                                console.log('✅ 클릭으로 음악 재생 성공');
+                                musicStarted = true;
+                                musicStatus.textContent = '음악 ON';
+                                musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
+                                musicControl.style.animation = '';
+                            }).catch(e => {
+                                console.log('❌ 클릭 음악 재생 실패:', e);
+                                musicStatus.textContent = '음악 재생 실패';
+                                musicControl.style.background = 'rgba(200, 50, 50, 0.9)';
+                            });
+                        }
+                        
+                        // 이벤트 리스너 제거
+                        bgMusic.removeEventListener('canplaythrough', playWhenReady);
+                    }, { once: true });
                 }
             } else {
                 // 음악 일시정지/재개
@@ -969,6 +1014,8 @@
                         musicStatus.textContent = '음악 ON';
                         musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
                         musicControl.style.animation = '';
+                    }).catch(e => {
+                        console.log('❌ 재개 실패:', e);
                     });
                 } else {
                     bgMusic.pause();
