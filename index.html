@@ -914,8 +914,52 @@
 
         let musicStarted = false;
         
+        // Web Audio API 기반 음악 재생 대안
+        let audioContext = null;
+        let audioBuffer = null;
+        let audioSource = null;
+        
+        function createWebAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('🎵 Web Audio Context 생성됨');
+                return true;
+            } catch (e) {
+                console.log('❌ Web Audio API 지원 안됨:', e);
+                return false;
+            }
+        }
+        
+        function playWebAudio() {
+            if (!audioContext) {
+                if (!createWebAudio()) return false;
+            }
+            
+            try {
+                // 간단한 멜로디 생성 (임시)
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A note
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 2);
+                
+                console.log('🎵 Web Audio로 테스트 사운드 재생');
+                return true;
+            } catch (e) {
+                console.log('❌ Web Audio 재생 실패:', e);
+                return false;
+            }
+        }
+
         function tryPlayMusic() {
-            console.log('🎵 자동 음악 재생 시도...');
+            console.log('🎵 음악 재생 시도...');
             
             if (!bgMusic) {
                 bgMusic = document.getElementById('bgMusic');
@@ -928,19 +972,29 @@
                 
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
-                        console.log('✅ 자동 음악 재생 성공!');
+                        console.log('✅ 파일 음악 재생 성공!');
                         musicStarted = true;
                         document.getElementById('musicStatus').textContent = '음악 ON';
                         const musicControl = document.querySelector('.music-control');
                         musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
                         musicControl.style.animation = '';
                     }).catch(error => {
-                        console.log('❌ 자동 음악 재생 실패 (예상됨):', error.name);
-                        // 사용자 클릭 유도
-                        const musicControl = document.querySelector('.music-control');
-                        musicControl.style.background = 'rgba(255, 107, 107, 0.9)';
-                        musicControl.style.animation = 'pulse 2s infinite';
-                        document.getElementById('musicStatus').textContent = '클릭해서 음악 재생';
+                        console.log('❌ 파일 음악 재생 실패, Web Audio 시도:', error.name);
+                        
+                        // Web Audio 대안 시도
+                        if (playWebAudio()) {
+                            musicStarted = true;
+                            document.getElementById('musicStatus').textContent = '음악 ON (Web Audio)';
+                            const musicControl = document.querySelector('.music-control');
+                            musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
+                            musicControl.style.animation = '';
+                        } else {
+                            // 최종 실패
+                            const musicControl = document.querySelector('.music-control');
+                            musicControl.style.background = 'rgba(255, 107, 107, 0.9)';
+                            musicControl.style.animation = 'pulse 2s infinite';
+                            document.getElementById('musicStatus').textContent = '음악 재생 불가';
+                        }
                     });
                 }
             }
@@ -976,38 +1030,24 @@
                     const playAttempt = bgMusic.play();
                     if (playAttempt !== undefined) {
                         playAttempt.then(() => {
-                            console.log('✅ 클릭으로 음악 재생 성공');
+                            console.log('✅ 클릭으로 파일 음악 재생 성공');
                             musicStarted = true;
                             musicStatus.textContent = '음악 ON';
                             musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
                             musicControl.style.animation = '';
                         }).catch(e => {
-                            console.log('❌ 클릭 음악 재생 실패:', e);
-                            console.log('🎵 오디오 정보:', {
-                                readyState: bgMusic.readyState,
-                                networkState: bgMusic.networkState,
-                                error: bgMusic.error,
-                                src: bgMusic.currentSrc || bgMusic.src
-                            });
+                            console.log('❌ 클릭 파일 음악 재생 실패, Web Audio 시도:', e.name);
                             
-                            // 재생 실패 시 load 후 재시도
-                            bgMusic.load();
-                            setTimeout(() => {
-                                const retryPlay = bgMusic.play();
-                                if (retryPlay !== undefined) {
-                                    retryPlay.then(() => {
-                                        console.log('✅ 재시도로 음악 재생 성공');
-                                        musicStarted = true;
-                                        musicStatus.textContent = '음악 ON';
-                                        musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
-                                        musicControl.style.animation = '';
-                                    }).catch(retryError => {
-                                        console.log('❌ 재시도도 실패:', retryError);
-                                        musicStatus.textContent = '음악 파일 오류';
-                                        musicControl.style.background = 'rgba(200, 50, 50, 0.9)';
-                                    });
-                                }
-                            }, 100);
+                            // Web Audio 대안 시도
+                            if (playWebAudio()) {
+                                musicStarted = true;
+                                musicStatus.textContent = '음악 ON (Web Audio)';
+                                musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
+                                musicControl.style.animation = '';
+                            } else {
+                                musicStatus.textContent = '음악 재생 불가';
+                                musicControl.style.background = 'rgba(200, 50, 50, 0.9)';
+                            }
                         });
                     }
                 }
