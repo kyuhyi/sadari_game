@@ -928,32 +928,72 @@
             }
         }
         
-        function playWebAudio() {
+        // 음악 재생 상태
+        let isPlayingMusic = false;
+        let musicInterval = null;
+        
+        function playWebAudioMusic() {
             if (!audioContext) {
                 if (!createWebAudio()) return false;
             }
             
+            if (isPlayingMusic) return true; // 이미 재생 중
+            
             try {
-                // 간단한 멜로디 생성 (임시)
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
+                console.log('🎵 Web Audio로 배경음악 재생 시작');
+                isPlayingMusic = true;
                 
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
+                // 반복적으로 멜로디 재생
+                function playMelody() {
+                    if (!isPlayingMusic) return;
+                    
+                    // 간단한 멜로디 시퀀스 (도레미파솔)
+                    const notes = [261.63, 293.66, 329.63, 349.23, 392.00]; // C, D, E, F, G
+                    let noteIndex = 0;
+                    
+                    function playNote() {
+                        if (!isPlayingMusic || noteIndex >= notes.length) {
+                            // 멜로디 끝나면 잠시 후 다시 시작
+                            if (isPlayingMusic) {
+                                setTimeout(playMelody, 1000);
+                            }
+                            return;
+                        }
+                        
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.setValueAtTime(notes[noteIndex], audioContext.currentTime);
+                        oscillator.type = 'sine'; // 부드러운 사인파
+                        
+                        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                        gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.05);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                        
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + 0.5);
+                        
+                        noteIndex++;
+                        setTimeout(playNote, 500); // 다음 음표까지 0.5초 간격
+                    }
+                    
+                    playNote();
+                }
                 
-                oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A note
-                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 2);
-                
-                console.log('🎵 Web Audio로 테스트 사운드 재생');
+                playMelody();
                 return true;
             } catch (e) {
-                console.log('❌ Web Audio 재생 실패:', e);
+                console.log('❌ Web Audio 음악 재생 실패:', e);
                 return false;
             }
+        }
+        
+        function stopWebAudioMusic() {
+            isPlayingMusic = false;
+            console.log('🎵 Web Audio 음악 정지');
         }
 
         function tryPlayMusic() {
@@ -1037,7 +1077,7 @@
                             console.log('❌ 클릭 파일 음악 재생 실패, Web Audio 시도:', e.name);
                             
                             // Web Audio 대안 시도
-                            if (playWebAudio()) {
+                            if (playWebAudioMusic()) {
                                 musicStarted = true;
                                 musicStatus.textContent = '음악 ON (Web Audio)';
                                 musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
@@ -1062,6 +1102,7 @@
                     });
                 } else {
                     bgMusic.pause();
+                    stopWebAudioMusic(); // Web Audio 음악도 정지
                     musicStatus.textContent = '음악 OFF';
                     musicControl.style.background = 'rgba(100, 100, 100, 0.9)';
                 }
