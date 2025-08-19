@@ -568,59 +568,62 @@
                 const y = canvasHeight - 70; // 더 위로 위치 변경
                 
                 if (i === winnerIndex) {
-                    // 당첨 박스 - 더 두꺼운 테두리와 그림자 효과
+                    // 당첨 박스 - 더 크고 눈에 띄게
                     ctx.fillStyle = '#FF6B6B';
-                    ctx.fillRect(x - 60, y - 25, 120, 50);
+                    ctx.fillRect(x - 70, y - 35, 140, 70);
                     ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 4;
-                    ctx.strokeRect(x - 60, y - 25, 120, 50);
+                    ctx.lineWidth = 5;
+                    ctx.strokeRect(x - 70, y - 35, 140, 70);
                     
                     // 내부 흰색 테두리
                     ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(x - 58, y - 23, 116, 46);
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(x - 67, y - 32, 134, 64);
                     
-                    const winTextSize = canvas.width < 400 ? 'bold 14px' : 'bold 18px';
-                    const menuTextSize = canvas.width < 400 ? 'bold 10px' : 'bold 14px';
+                    const winTextSize = canvas.width < 400 ? 'bold 18px' : 'bold 24px';
+                    const menuTextSize = canvas.width < 400 ? 'bold 12px' : 'bold 16px';
                     const maxMenuLength = canvas.width < 400 ? 6 : 8;
                     
+                    // 당첨 텍스트 - 더 크고 명확하게
                     ctx.font = winTextSize + ' Arial';
                     ctx.textAlign = 'center';
                     ctx.fillStyle = '#000';
-                    ctx.fillText('당첨!', x, y - 2);
-                    ctx.fillStyle = '#fff';
-                    ctx.fillText('당첨!', x - 1, y - 3);
+                    ctx.fillText('🎉 당첨! 🎉', x, y - 8);
+                    ctx.fillStyle = '#FFFF00';
+                    ctx.fillText('🎉 당첨! 🎉', x - 1, y - 9);
                     
+                    // 메뉴 텍스트
                     ctx.font = menuTextSize + ' Arial';
                     ctx.fillStyle = '#000';
-                    ctx.fillText(winnerMenu.length > maxMenuLength ? winnerMenu.substring(0,maxMenuLength) + '...' : winnerMenu, x, y + 15);
+                    ctx.fillText(winnerMenu.length > maxMenuLength ? winnerMenu.substring(0,maxMenuLength) + '...' : winnerMenu, x, y + 18);
                     ctx.fillStyle = '#fff';
-                    ctx.fillText(winnerMenu.length > maxMenuLength ? winnerMenu.substring(0,maxMenuLength) + '...' : winnerMenu, x - 1, y + 14);
+                    ctx.fillText(winnerMenu.length > maxMenuLength ? winnerMenu.substring(0,maxMenuLength) + '...' : winnerMenu, x - 1, y + 17);
                     
                     // 당첨 정보 저장
                     canvas.setAttribute('data-winner-index', winnerIndex);
                     canvas.setAttribute('data-winner-menu', winnerMenu);
                 } else {
-                    // 통과 박스
+                    // 통과 박스 - 더 크고 명확하게
                     ctx.fillStyle = colors[i % colors.length];
-                    ctx.fillRect(x - 60, y - 25, 120, 50);
+                    ctx.fillRect(x - 70, y - 35, 140, 70);
                     ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 4;
-                    ctx.strokeRect(x - 60, y - 25, 120, 50);
+                    ctx.lineWidth = 5;
+                    ctx.strokeRect(x - 70, y - 35, 140, 70);
                     
                     // 내부 흰색 테두리
                     ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(x - 58, y - 23, 116, 46);
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(x - 67, y - 32, 134, 64);
                     
-                    const passTextSize = canvas.width < 400 ? 'bold 16px' : 'bold 20px';
+                    const passTextSize = canvas.width < 400 ? 'bold 20px' : 'bold 28px';
                     
+                    // 통과 텍스트 - 더 크고 명확하게
                     ctx.font = passTextSize + ' Arial';
                     ctx.textAlign = 'center';
                     ctx.fillStyle = '#000';
-                    ctx.fillText('통과', x, y + 7);
+                    ctx.fillText('💸 통과 💸', x, y + 5);
                     ctx.fillStyle = '#fff';
-                    ctx.fillText('통과', x - 1, y + 6);
+                    ctx.fillText('💸 통과 💸', x - 1, y + 4);
                 }
             }
         }
@@ -960,16 +963,70 @@
             }
         });
 
+        // 즉시 음악 시작을 위한 함수
+        function forceStartMusic() {
+            if (bgMusic && !musicStarted) {
+                bgMusic.volume = 0.4;
+                bgMusic.muted = false;
+                bgMusic.autoplay = true;
+                
+                // 여러 방법으로 재생 시도
+                const playAttempts = [
+                    () => bgMusic.play(),
+                    () => {
+                        bgMusic.currentTime = 0;
+                        return bgMusic.play();
+                    },
+                    () => {
+                        bgMusic.load();
+                        return bgMusic.play();
+                    }
+                ];
+                
+                function tryPlay(index = 0) {
+                    if (index >= playAttempts.length) return;
+                    
+                    const attempt = playAttempts[index];
+                    const promise = attempt();
+                    
+                    if (promise !== undefined) {
+                        promise.then(() => {
+                            console.log('✅ 음악 재생 성공! (시도 ' + (index + 1) + ')');
+                            musicStarted = true;
+                            const musicControl = document.getElementById('musicControl');
+                            if (musicControl) {
+                                musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
+                                musicControl.style.animation = '';
+                                musicControl.innerHTML = '🎵 <span id="musicStatus">음악 ON</span>';
+                            }
+                        }).catch(() => {
+                            setTimeout(() => tryPlay(index + 1), 100);
+                        });
+                    } else {
+                        setTimeout(() => tryPlay(index + 1), 100);
+                    }
+                }
+                
+                tryPlay();
+            }
+        }
+
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
             bgMusic = document.getElementById('bgMusic');
             
             if (bgMusic) {
                 bgMusic.volume = 0.4;
+                bgMusic.autoplay = true;
                 
-                // 오디오 로드 완료 시
-                bgMusic.addEventListener('loadeddata', function() {
+                // 오디오 로드 완료 시 즉시 재생
+                bgMusic.addEventListener('canplaythrough', function() {
                     console.log('🎵 오디오 파일 로드 완료');
+                    forceStartMusic();
+                });
+                
+                bgMusic.addEventListener('loadeddata', function() {
+                    forceStartMusic();
                 });
                 
                 bgMusic.addEventListener('error', function(e) {
@@ -977,22 +1034,21 @@
                 });
                 
                 // 즉시 음악 재생 시도
-                setTimeout(initMusic, 500);
+                setTimeout(forceStartMusic, 100);
+                setTimeout(forceStartMusic, 500);
+                setTimeout(forceStartMusic, 1000);
                 
-                // 더 많은 사용자 상호작용 이벤트로 음악 시작
-                const events = ['click', 'touchstart', 'keydown', 'mouseover', 'scroll', 'mousemove', 'touchmove'];
+                // 모든 사용자 상호작용에서 음악 시작
+                const events = ['click', 'touchstart', 'keydown', 'mouseover', 'scroll', 'mousemove', 'touchmove', 'mouseenter', 'focus'];
                 events.forEach(event => {
-                    document.addEventListener(event, function() {
-                        if (!musicStarted) {
-                            initMusic();
-                        }
-                    }, { once: true });
+                    document.addEventListener(event, forceStartMusic, { passive: true });
                 });
                 
-                // 페이지 포커스 시에도 재시도
-                window.addEventListener('focus', function() {
-                    if (!musicStarted) {
-                        setTimeout(initMusic, 100);
+                // 페이지 포커스/visibility 변경 시에도 재시도
+                window.addEventListener('focus', forceStartMusic);
+                document.addEventListener('visibilitychange', function() {
+                    if (!document.hidden) {
+                        setTimeout(forceStartMusic, 100);
                     }
                 });
             }
