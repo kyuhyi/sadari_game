@@ -288,7 +288,8 @@
     </div>
     
     <!-- Background Music -->
-    <audio id="bgMusic" loop preload="metadata">
+    <audio id="bgMusic" loop preload="metadata" crossorigin="anonymous">
+        <source src="bsd_music.m4a" type="audio/mp4">
         <source src="bsd_music.mp3" type="audio/mpeg">
         브라우저가 오디오를 지원하지 않습니다.
     </audio>
@@ -437,10 +438,11 @@
             for (let i = 1; i <= playerCount; i++) {
                 const playerInput = document.getElementById(`player${i}`);
                 if (!playerInput) {
+                    console.warn(`${i}번 참가자 입력 필드를 찾을 수 없습니다.`);
                     alert(`${i}번 참가자 입력 필드를 찾을 수 없습니다.`);
                     return;
                 }
-                const name = playerInput.value.trim();
+                const name = playerInput.value?.trim() || '';
                 if (!name) {
                     alert(`${i}번 참가자의 이름을 입력해주세요.`);
                     return;
@@ -660,7 +662,7 @@
             const players = [];
             for (let i = 1; i <= playerCount; i++) {
                 const playerInput = document.getElementById(`player${i}`);
-                if (playerInput) {
+                if (playerInput?.value) {
                     players.push(playerInput.value.trim());
                 }
             }
@@ -841,7 +843,7 @@
             const players = [];
             for (let i = 1; i <= playerCount; i++) {
                 const playerInput = document.getElementById(`player${i}`);
-                if (playerInput) {
+                if (playerInput?.value) {
                     players.push(playerInput.value.trim());
                 }
             }
@@ -912,88 +914,95 @@
 
         let musicStarted = false;
         
-        // Web Audio API 기반 음악 재생 대안
+        // 강화된 Web Audio 시스템
         let audioContext = null;
         let audioBuffer = null;
-        let audioSource = null;
-        
-        function createWebAudio() {
+        let bufferSource = null;
+        let gainNode = null;
+        let isWebAudioPlaying = false;
+
+        async function initAudioContext() {
             try {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                console.log('🎵 Web Audio Context 생성됨');
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
+                console.log('🎵 AudioContext 초기화 완료:', audioContext.state);
                 return true;
             } catch (e) {
-                console.log('❌ Web Audio API 지원 안됨:', e);
+                console.warn('❌ AudioContext 생성 실패:', e);
                 return false;
             }
         }
-        
-        // 음악 재생 상태
-        let isPlayingMusic = false;
-        let musicInterval = null;
-        
-        function playWebAudioMusic() {
-            if (!audioContext) {
-                if (!createWebAudio()) return false;
-            }
-            
-            if (isPlayingMusic) return true; // 이미 재생 중
+
+        async function playWithTag() {
+            const el = document.getElementById('bgMusic');
+            if (!el) return false;
             
             try {
-                console.log('🎵 Web Audio로 배경음악 재생 시작');
-                isPlayingMusic = true;
-                
-                // 반복적으로 멜로디 재생
-                function playMelody() {
-                    if (!isPlayingMusic) return;
-                    
-                    // 간단한 멜로디 시퀀스 (도레미파솔)
-                    const notes = [261.63, 293.66, 329.63, 349.23, 392.00]; // C, D, E, F, G
-                    let noteIndex = 0;
-                    
-                    function playNote() {
-                        if (!isPlayingMusic || noteIndex >= notes.length) {
-                            // 멜로디 끝나면 잠시 후 다시 시작
-                            if (isPlayingMusic) {
-                                setTimeout(playMelody, 1000);
-                            }
-                            return;
-                        }
-                        
-                        const oscillator = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        
-                        oscillator.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        
-                        oscillator.frequency.setValueAtTime(notes[noteIndex], audioContext.currentTime);
-                        oscillator.type = 'sine'; // 부드러운 사인파
-                        
-                        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                        gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.05);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-                        
-                        oscillator.start(audioContext.currentTime);
-                        oscillator.stop(audioContext.currentTime + 0.5);
-                        
-                        noteIndex++;
-                        setTimeout(playNote, 500); // 다음 음표까지 0.5초 간격
-                    }
-                    
-                    playNote();
-                }
-                
-                playMelody();
+                await el.play();
+                console.log('✅ <audio> 태그로 재생 성공');
                 return true;
             } catch (e) {
-                console.log('❌ Web Audio 음악 재생 실패:', e);
+                console.warn('❌ <audio> 태그 재생 실패:', e);
                 return false;
             }
         }
-        
-        function stopWebAudioMusic() {
-            isPlayingMusic = false;
-            console.log('🎵 Web Audio 음악 정지');
+
+        async function playWithWebAudio(url) {
+            try {
+                if (!audioContext && !(await initAudioContext())) {
+                    throw new Error('AudioContext 초기화 실패');
+                }
+
+                console.log('🎵 Web Audio로 파일 로드 시도:', url);
+                
+                const response = await fetch(url, { mode: 'cors' });
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                // 기존 재생 중단
+                if (bufferSource) {
+                    bufferSource.stop();
+                    bufferSource = null;
+                }
+                
+                // 새 소스 생성
+                bufferSource = audioContext.createBufferSource();
+                gainNode = audioContext.createGain();
+                
+                bufferSource.buffer = audioBuffer;
+                bufferSource.loop = true;
+                bufferSource.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                gainNode.gain.value = 0.4;
+                
+                bufferSource.start(0);
+                isWebAudioPlaying = true;
+                
+                console.log('✅ Web Audio로 재생 성공');
+                return { audioContext, bufferSource };
+            } catch (e) {
+                console.error('❌ Web Audio 재생 실패:', e);
+                throw e;
+            }
+        }
+
+        function stopWebAudio() {
+            if (bufferSource) {
+                try {
+                    bufferSource.stop();
+                } catch (e) {
+                    console.warn('bufferSource.stop() 실패:', e);
+                }
+                bufferSource = null;
+            }
+            isWebAudioPlaying = false;
+            console.log('🎵 Web Audio 정지');
         }
 
         function tryPlayMusic() {
@@ -1038,73 +1047,73 @@
             }
         }
         
-        function toggleMusic() {
+        // UI 업데이트 헬퍼 함수
+        function updateMusicUI(statusText, isSuccess) {
+            const musicStatus = document.getElementById('musicStatus');
+            const musicControl = document.querySelector('.music-control');
+            
+            if (musicStatus) musicStatus.textContent = statusText;
+            if (musicControl) {
+                if (isSuccess) {
+                    musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
+                    musicControl.style.animation = '';
+                } else {
+                    musicControl.style.background = 'rgba(255, 107, 107, 0.9)';
+                    musicControl.style.animation = 'pulse 2s infinite';
+                }
+            }
+        }
+
+        async function toggleMusic() {
             console.log('🎵 음악 토글 클릭');
             const musicStatus = document.getElementById('musicStatus');
             const musicControl = document.querySelector('.music-control');
             
-            if (!bgMusic) {
-                bgMusic = document.getElementById('bgMusic');
-                if (bgMusic) {
-                    bgMusic.volume = 0.4;
-                    console.log('🎵 bgMusic 초기화됨');
-                }
-            }
-            
-            if (!musicStarted || (bgMusic && bgMusic.paused)) {
+            if (!musicStarted || (isWebAudioPlaying && bufferSource)) {
                 // 음악 시작/재생
                 musicEnabled = true;
-                console.log('🎵 음악 재생 시도 중...');
+                console.log('🎵 사용자 클릭으로 음악 재생 시도...');
                 
-                if (bgMusic) {
-                    // 현재 재생 중인 것이 있으면 중단
-                    if (!bgMusic.paused) {
-                        bgMusic.pause();
+                try {
+                    // 먼저 <audio> 태그 시도
+                    const tagSuccess = await playWithTag();
+                    if (tagSuccess) {
+                        musicStarted = true;
+                        updateMusicUI('음악 ON', true);
+                        return;
                     }
                     
-                    // 간단하게 바로 재생 시도
-                    bgMusic.currentTime = 0;
-                    
-                    const playAttempt = bgMusic.play();
-                    if (playAttempt !== undefined) {
-                        playAttempt.then(() => {
-                            console.log('✅ 클릭으로 파일 음악 재생 성공');
-                            musicStarted = true;
-                            musicStatus.textContent = '음악 ON';
-                            musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
-                            musicControl.style.animation = '';
-                        }).catch(e => {
-                            console.log('❌ 클릭 파일 음악 재생 실패, Web Audio 시도:', e.name);
-                            
-                            // Web Audio 대안 시도
-                            if (playWebAudioMusic()) {
-                                musicStarted = true;
-                                musicStatus.textContent = '음악 ON (Web Audio)';
-                                musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
-                                musicControl.style.animation = '';
-                            } else {
-                                musicStatus.textContent = '음악 재생 불가';
-                                musicControl.style.background = 'rgba(200, 50, 50, 0.9)';
-                            }
-                        });
+                    // 실패시 Web Audio 시도
+                    const el = document.getElementById('bgMusic');
+                    const url = el?.currentSrc || el?.querySelector('source')?.src;
+                    if (url) {
+                        await playWithWebAudio(url);
+                        musicStarted = true;
+                        updateMusicUI('음악 ON (Web Audio)', true);
+                    } else {
+                        throw new Error('음악 파일 URL을 찾을 수 없음');
                     }
+                } catch (e) {
+                    console.error('❌ 모든 재생 방법 실패:', e);
+                    updateMusicUI('음악 재생 실패', false);
                 }
             } else {
                 // 음악 일시정지/재개
                 musicEnabled = !musicEnabled;
                 if (musicEnabled) {
-                    bgMusic.play().then(() => {
-                        musicStatus.textContent = '음악 ON';
-                        musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
-                        musicControl.style.animation = '';
-                    }).catch(e => {
-                        console.log('❌ 재개 실패:', e);
-                    });
+                    // 재개
+                    if (bgMusic && !bgMusic.paused) {
+                        updateMusicUI('음악 ON', true);
+                    } else if (isWebAudioPlaying && gainNode) {
+                        gainNode.gain.value = 0.4;
+                        updateMusicUI('음악 ON (Web Audio)', true);
+                    }
                 } else {
-                    bgMusic.pause();
-                    stopWebAudioMusic(); // Web Audio 음악도 정지
-                    musicStatus.textContent = '음악 OFF';
-                    musicControl.style.background = 'rgba(100, 100, 100, 0.9)';
+                    // 정지
+                    if (bgMusic) bgMusic.pause();
+                    if (gainNode) gainNode.gain.value = 0;
+                    stopWebAudio();
+                    updateMusicUI('음악 OFF', false);
                 }
             }
         }
@@ -1150,9 +1159,7 @@
                     console.log('❌ 오디오 에러 정보:', bgMusic.error);
                 });
                 
-                // 오디오 소스 직접 설정
-                bgMusic.src = 'bsd_music.mp3';
-                bgMusic.load();
+                // 간단한 초기화만 수행 (로딩은 사용자 클릭 시)
                 
                 // 간단한 사용자 상호작용 감지
                 document.addEventListener('click', function() {
