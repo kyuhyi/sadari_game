@@ -288,9 +288,10 @@
     </div>
     
     <!-- Background Music -->
-    <audio id="bgMusic" loop preload="auto">
+    <audio id="bgMusic" loop preload="metadata">
+        <source src="BSD 사다리게임 당첨자!.wav" type="audio/wav">
+        <source src="bsd_web.mp3" type="audio/mpeg">
         <source src="bsd.mp3" type="audio/mpeg">
-        <source src="bsd.mp3" type="audio/mp3">
         브라우저가 오디오를 지원하지 않습니다.
     </audio>
 
@@ -1070,8 +1071,8 @@
                     console.log('❌ 오디오 에러 정보:', bgMusic.error);
                 });
                 
-                // 오디오 소스 직접 설정
-                bgMusic.src = 'bsd.mp3';
+                // 오디오 소스 직접 설정 (WAV 우선)
+                bgMusic.src = 'BSD 사다리게임 당첨자!.wav';
                 bgMusic.load();
                 
                 // 간단한 사용자 상호작용 감지
