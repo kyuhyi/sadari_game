@@ -517,15 +517,11 @@
                 const numberSize = canvas.width < 400 ? 'bold 12px' : 'bold 16px';
                 const nameSize = canvas.width < 400 ? 'bold 10px' : 'bold 14px';
                 
-                // 동물 이모지
+                // 동물 이모지와 숫자를 함께 표시 (중앙에)
                 ctx.font = emojiSize + ' Arial';
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#fff';
-                ctx.fillText(animals[i % animals.length], x - 30, y + 5);
-                
-                // 숫자
-                ctx.font = numberSize + ' Arial';
-                ctx.fillText((i + 1), x + 20, y + 5);
+                ctx.fillText(animals[i % animals.length] + ' ' + (i + 1), x, y + 5);
                 
                 // 플레이어 이름
                 ctx.font = nameSize + ' Arial';
@@ -890,18 +886,22 @@
                 bgMusic.volume = 0.4;
                 bgMusic.currentTime = 0;
                 
+                // 더 적극적인 음악 재생 시도
                 const playPromise = bgMusic.play();
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
                         console.log('✅ 음악 재생 성공!');
                         musicStarted = true;
                         document.getElementById('musicStatus').textContent = '음악 ON';
+                        const musicControl = document.getElementById('musicControl');
+                        musicControl.style.background = 'rgba(45, 45, 45, 0.9)';
                     }).catch(error => {
                         console.log('❌ 음악 재생 실패:', error);
-                        // 사용자 상호작용 필요 메시지
+                        // 더 눈에 띄는 음악 재생 버튼
                         const musicControl = document.getElementById('musicControl');
                         musicControl.style.background = 'rgba(255, 107, 107, 0.9)';
-                        musicControl.innerHTML = '🎵 <span>클릭하여 음악 재생</span>';
+                        musicControl.style.animation = 'pulse 2s infinite';
+                        musicControl.innerHTML = '🎵 <span>♪ 음악 재생하기 ♪</span>';
                     });
                 }
             }
@@ -977,16 +977,23 @@
                 });
                 
                 // 즉시 음악 재생 시도
-                setTimeout(initMusic, 1000);
+                setTimeout(initMusic, 500);
                 
-                // 사용자 상호작용 시 음악 시작
-                const events = ['click', 'touchstart', 'keydown', 'mouseover'];
+                // 더 많은 사용자 상호작용 이벤트로 음악 시작
+                const events = ['click', 'touchstart', 'keydown', 'mouseover', 'scroll', 'mousemove', 'touchmove'];
                 events.forEach(event => {
                     document.addEventListener(event, function() {
                         if (!musicStarted) {
                             initMusic();
                         }
                     }, { once: true });
+                });
+                
+                // 페이지 포커스 시에도 재시도
+                window.addEventListener('focus', function() {
+                    if (!musicStarted) {
+                        setTimeout(initMusic, 100);
+                    }
                 });
             }
         });
