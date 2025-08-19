@@ -271,7 +271,10 @@
         </div>
 
         <div class="header">
-            <img src="bsd-white.png" alt="BSD 로고" class="logo" style="width:300px;height:auto;max-width:90%;margin:0 auto 20px;display:block;">
+            <div style="width:300px;height:150px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;max-width:90%;">
+                <img src="bsd-white.png" alt="BSD 로고" style="width:100%;height:auto;" onload="this.style.display='block'" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div style="display:none;width:300px;height:150px;background:linear-gradient(135deg, #ff6b6b, #ff5252);border-radius:20px;align-items:center;justify-content:center;color:white;font-size:24px;font-weight:bold;box-shadow:0 8px 32px rgba(255,107,107,0.3);border:3px solid rgba(255,255,255,0.2);">BSD 사다리 게임</div>
+            </div>
             <h1>☕ 사다리 게임 ☕</h1>
             <p class="subtitle">커피 쏘기 당첨자를 뽑아보세요!</p>
         </div>
@@ -309,16 +312,12 @@
         </div>
 
         <div class="game-board" id="gameBoard">
-            <div class="players-row" id="playersRow"></div>
-            <div style="text-align: center; margin: 30px 0;" id="gameProgress">
-                <div style="background: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 40px; border: 2px solid #555;">
-                    <h2 style="color: #ff6b6b;" id="progressTitle">🎮 게임 준비 완료! 🎮</h2>
-                    <p style="margin-top: 10px; color: #ccc;" id="progressMessage">사다리 타기 버튼을 눌러주세요!</p>
-                </div>
+            <div style="text-align: center; margin: 20px 0;">
+                <canvas id="ladderCanvas" width="900" height="500" style="background: #f5f5f0; border-radius: 15px; border: 3px solid #ddd; max-width: 100%;"></canvas>
             </div>
-            <div class="results-row" id="resultsRow"></div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn-primary" onclick="runLadder()">사다리 타기!</button>
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn-primary" onclick="runLadderAnimation()" id="ladderBtn">🎮 사다리 타기! 🎮</button>
+                <button class="btn-secondary" onclick="resetLadder()" style="margin-left: 10px;">다시 시도</button>
             </div>
         </div>
 
@@ -346,6 +345,9 @@
         let gameStarted = false;
         let musicEnabled = true;
         let bgMusic = null;
+        let canvas, ctx;
+        let ladderStructure = [];
+        let animationRunning = false;
         
         const coffeeMenus = {
             빽다방: [
@@ -359,6 +361,9 @@
                 "달고나라떼"
             ]
         };
+        
+        const animals = ['🐭', '🐸', '🐷', '🐰', '🐻'];
+        const colors = ['#FF8C42', '#6BCF7F', '#CD853F', '#9B59B6', '#95C623'];
 
         function addPlayer() {
             if (playerCount >= 10) {
@@ -411,44 +416,274 @@
         }
 
         function setupGame(players) {
-            const playersRow = document.getElementById('playersRow');
-            const resultsRow = document.getElementById('resultsRow');
-
-            playersRow.innerHTML = '';
-            resultsRow.innerHTML = '';
-
-            // 플레이어 표시
-            players.forEach(player => {
-                const playerDiv = document.createElement('div');
-                playerDiv.className = 'player-name';
-                playerDiv.textContent = player;
-                playersRow.appendChild(playerDiv);
-            });
-
-            // 당첨자 1명 랜덤 선택
+            canvas = document.getElementById('ladderCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // 캔버스 초기화
+            setupLadderCanvas(players);
+        }
+        
+        function setupLadderCanvas(players) {
+            if (!ctx) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const playerWidth = canvasWidth / (players.length + 1);
+            const levels = 6;
+            const levelHeight = (canvasHeight - 200) / (levels + 1);
+            
+            // 사다리 구조 생성
+            ladderStructure = [];
+            for (let level = 0; level < levels; level++) {
+                const connections = [];
+                const used = new Set();
+                
+                for (let i = 0; i < players.length - 1; i++) {
+                    if (!used.has(i) && !used.has(i + 1) && Math.random() > 0.4) {
+                        connections.push(i);
+                        used.add(i);
+                        used.add(i + 1);
+                    }
+                }
+                ladderStructure.push(connections);
+            }
+            
+            // 상단 플레이어 그리기
+            for (let i = 0; i < players.length; i++) {
+                const x = playerWidth * (i + 1);
+                const y = 60;
+                
+                // 플레이어 바 그리기
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fillRect(x - 60, y - 25, 120, 50);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(x - 60, y - 25, 120, 50);
+                
+                // 동물 이모지
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#fff';
+                ctx.fillText(animals[i % animals.length], x - 30, y + 5);
+                
+                // 숫자
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText((i + 1), x + 20, y + 5);
+                
+                // 플레이어 이름
+                ctx.font = 'bold 14px Arial';
+                ctx.fillStyle = '#333';
+                ctx.fillText(players[i].length > 6 ? players[i].substring(0,6) + '...' : players[i], x, y + 30);
+            }
+            
+            // 세로선 그리기
+            ctx.strokeStyle = colors[0];
+            ctx.lineWidth = 4;
+            for (let i = 0; i < players.length; i++) {
+                const x = playerWidth * (i + 1);
+                ctx.beginPath();
+                ctx.moveTo(x, 90);
+                ctx.lineTo(x, canvasHeight - 130);
+                ctx.stroke();
+            }
+            
+            // 가로선 그리기
+            for (let level = 0; level < levels; level++) {
+                const y = 90 + levelHeight * (level + 1);
+                const connections = ladderStructure[level];
+                
+                connections.forEach(connection => {
+                    const x1 = playerWidth * (connection + 1);
+                    const x2 = playerWidth * (connection + 2);
+                    
+                    ctx.strokeStyle = '#888';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y);
+                    ctx.lineTo(x2, y);
+                    ctx.stroke();
+                });
+            }
+            
+            // 하단 결과 그리기
             const winnerIndex = Math.floor(Math.random() * players.length);
             const winnerMenu = coffeeMenus.빽다방[Math.floor(Math.random() * coffeeMenus.빽다방.length)];
             
-            // 결과 표시
             for (let i = 0; i < players.length; i++) {
-                const resultDiv = document.createElement('div');
-                resultDiv.className = 'result-item';
+                const x = playerWidth * (i + 1);
+                const y = canvasHeight - 60;
+                
                 if (i === winnerIndex) {
-                    resultDiv.textContent = winnerMenu;
-                    resultDiv.style.background = '#ff6b6b';
-                    resultDiv.setAttribute('data-winner', 'true');
-                    resultDiv.setAttribute('data-menu', winnerMenu);
+                    ctx.fillStyle = '#FF6B6B';
+                    ctx.fillRect(x - 60, y - 25, 120, 50);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(x - 60, y - 25, 120, 50);
+                    
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText('당첨!', x, y - 5);
+                    ctx.font = '10px Arial';
+                    ctx.fillText(winnerMenu.length > 8 ? winnerMenu.substring(0,8) + '...' : winnerMenu, x, y + 10);
+                    
+                    // 당첨 정보 저장
+                    canvas.setAttribute('data-winner-index', winnerIndex);
+                    canvas.setAttribute('data-winner-menu', winnerMenu);
                 } else {
-                    resultDiv.textContent = '통과';
-                    resultDiv.style.background = '#4ecdc4';
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.fillRect(x - 60, y - 25, 120, 50);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(x - 60, y - 25, 120, 50);
+                    
+                    ctx.font = '14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText('통과', x, y + 5);
                 }
-                resultsRow.appendChild(resultDiv);
             }
         }
 
-        function updateProgress(title, message) {
-            document.getElementById('progressTitle').textContent = title;
-            document.getElementById('progressMessage').textContent = message;
+        function runLadderAnimation() {
+            if (animationRunning || !gameStarted) return;
+            
+            animationRunning = true;
+            document.getElementById('ladderBtn').disabled = true;
+            document.getElementById('ladderBtn').textContent = '사다리 타는 중...';
+            
+            const players = [];
+            for (let i = 1; i <= playerCount; i++) {
+                players.push(document.getElementById(`player${i}`).value.trim());
+            }
+            
+            // 각 플레이어 경로 계산
+            const paths = [];
+            for (let i = 0; i < players.length; i++) {
+                paths.push(calculatePath(i, players.length));
+            }
+            
+            // 애니메이션 실행
+            animatePaths(paths, players);
+        }
+        
+        function calculatePath(startColumn, playerCount) {
+            let currentColumn = startColumn;
+            const path = [{x: startColumn, y: 0}];
+            
+            for (let level = 0; level < ladderStructure.length; level++) {
+                const connections = ladderStructure[level];
+                
+                // 가로선 연결 확인
+                for (let connection of connections) {
+                    if (connection === currentColumn) {
+                        currentColumn = connection + 1;
+                        break;
+                    } else if (connection + 1 === currentColumn) {
+                        currentColumn = connection;
+                        break;
+                    }
+                }
+                path.push({x: currentColumn, y: level + 1});
+            }
+            
+            return path;
+        }
+        
+        function animatePaths(paths, players) {
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const playerWidth = canvasWidth / (players.length + 1);
+            const levelHeight = (canvasHeight - 200) / (ladderStructure.length + 1);
+            
+            let animationStep = 0;
+            const maxSteps = ladderStructure.length + 1;
+            
+            function drawAnimationStep() {
+                // 캔버스 다시 그리기
+                setupLadderCanvas(players);
+                
+                // 각 플레이어의 현재 위치 표시
+                for (let i = 0; i < paths.length; i++) {
+                    if (animationStep < paths[i].length) {
+                        const currentPos = paths[i][animationStep];
+                        const x = playerWidth * (currentPos.x + 1);
+                        const y = 90 + levelHeight * currentPos.y;
+                        
+                        // 움직이는 점 그리기
+                        ctx.fillStyle = '#FF0000';
+                        ctx.strokeStyle = '#FFFFFF';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 15, 0, 2 * Math.PI);
+                        ctx.fill();
+                        ctx.stroke();
+                        
+                        // 플레이어 번호
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.font = 'bold 12px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(i + 1, x, y + 4);
+                    }
+                }
+                
+                animationStep++;
+                
+                if (animationStep <= maxSteps) {
+                    setTimeout(drawAnimationStep, 800);
+                } else {
+                    // 애니메이션 완료
+                    completeAnimation(paths, players);
+                }
+            }
+            
+            drawAnimationStep();
+        }
+        
+        function completeAnimation(paths, players) {
+            animationRunning = false;
+            document.getElementById('ladderBtn').disabled = false;
+            document.getElementById('ladderBtn').textContent = '🎮 사다리 타기! 🎮';
+            
+            // 최종 결과 확인
+            const winnerIndex = parseInt(canvas.getAttribute('data-winner-index'));
+            const winnerMenu = canvas.getAttribute('data-winner-menu');
+            
+            // 실제 당첨자 찾기 (어느 플레이어가 당첨 위치에 도달했는지)
+            let actualWinner = null;
+            for (let i = 0; i < paths.length; i++) {
+                const finalPosition = paths[i][paths[i].length - 1].x;
+                if (finalPosition === winnerIndex) {
+                    actualWinner = {
+                        name: players[i],
+                        menu: winnerMenu
+                    };
+                    break;
+                }
+            }
+            
+            if (actualWinner) {
+                document.getElementById('winnerName').textContent = actualWinner.name;
+                document.getElementById('winnerAnnouncement').style.display = 'block';
+                
+                setTimeout(() => {
+                    alert(`🎉 당첨자: ${actualWinner.name}님!\n\n빽다방 ${actualWinner.menu}을(를) 쏘셔야 해요! ☕`);
+                    document.getElementById('coffeeMessage').innerHTML = `<strong>빽다방 ${actualWinner.menu}</strong>을(를) 쏘세요! ☕`;
+                }, 500);
+            }
+        }
+        
+        function resetLadder() {
+            if (gameStarted) {
+                const players = [];
+                for (let i = 1; i <= playerCount; i++) {
+                    players.push(document.getElementById(`player${i}`).value.trim());
+                }
+                setupLadderCanvas(players);
+                document.getElementById('winnerAnnouncement').style.display = 'none';
+            }
         }
 
         function runLadder() {
