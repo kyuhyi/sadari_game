@@ -435,7 +435,12 @@
             
             const players = [];
             for (let i = 1; i <= playerCount; i++) {
-                const name = document.getElementById(`player${i}`).value.trim();
+                const playerInput = document.getElementById(`player${i}`);
+                if (!playerInput) {
+                    alert(`${i}번 참가자 입력 필드를 찾을 수 없습니다.`);
+                    return;
+                }
+                const name = playerInput.value.trim();
                 if (!name) {
                     alert(`${i}번 참가자의 이름을 입력해주세요.`);
                     return;
@@ -654,7 +659,10 @@
             
             const players = [];
             for (let i = 1; i <= playerCount; i++) {
-                players.push(document.getElementById(`player${i}`).value.trim());
+                const playerInput = document.getElementById(`player${i}`);
+                if (playerInput) {
+                    players.push(playerInput.value.trim());
+                }
             }
             
             // 각 플레이어 경로 계산
@@ -814,7 +822,10 @@
                 gameResult = null;
                 const players = [];
                 for (let i = 1; i <= playerCount; i++) {
-                    players.push(document.getElementById(`player${i}`).value.trim());
+                    const playerInput = document.getElementById(`player${i}`);
+                    if (playerInput) {
+                        players.push(playerInput.value.trim());
+                    }
                 }
                 setupLadderCanvas(players);
                 document.getElementById('winnerAnnouncement').style.display = 'none';
@@ -829,7 +840,10 @@
             
             const players = [];
             for (let i = 1; i <= playerCount; i++) {
-                players.push(document.getElementById(`player${i}`).value.trim());
+                const playerInput = document.getElementById(`player${i}`);
+                if (playerInput) {
+                    players.push(playerInput.value.trim());
+                }
             }
             
             // 1초 후 결과 표시 (사다리 타는 느낌)
@@ -969,7 +983,10 @@
             if (gameStarted && canvas) {
                 const players = [];
                 for (let i = 1; i <= playerCount; i++) {
-                    players.push(document.getElementById(`player${i}`).value.trim());
+                    const playerInput = document.getElementById(`player${i}`);
+                    if (playerInput) {
+                        players.push(playerInput.value.trim());
+                    }
                 }
                 setCanvasSize();
                 setupLadderCanvas(players);
